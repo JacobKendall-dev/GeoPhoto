@@ -294,30 +294,66 @@ export default function HomeScreen() {
 </Pressable>
   
 
-  <BottomSheet
-    ref={locationSheetRef}
-    index={-1}
-    snapPoints={snapPoints}
-    enablePanDownToClose={true} // User can't "swipe" it away
-    enableContentPanningGesture={true} // User can't drag the content area
-    enableHandlePanningGesture={true}
-    style={styles.locationSheet}
-  >
-    {selectedLocation && (
-      <BottomSheetView style={styles.container}>
-        <Button title="X" onPress={closeLocation} />
-        <View style={styles.pictureContainer}>
-          {selectedLocation.imageUrl && <Image source={{ uri: selectedLocation.imageUrl }} style={styles.image} />}
+<BottomSheet
+  ref={locationSheetRef}
+  index={-1}
+  snapPoints={snapPoints}
+  enablePanDownToClose={true}
+  enableContentPanningGesture={true}
+  enableHandlePanningGesture={true}
+  style={styles.locationSheet}
+>
+  {selectedLocation && (
+    <BottomSheetView style={styles.container}>
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Location</Text>
+
+        <Pressable
+          onPress={closeLocation}
+          style={styles.closeButton}
+        >
+          <Text style={styles.closeButtonText}>×</Text>
+        </Pressable>
+      </View>
+
+      {/* Image */}
+      {selectedLocation.imageUrl && (
+        <Image
+          source={{ uri: selectedLocation.imageUrl }}
+          style={styles.image}
+        />
+      )}
+
+      {/* Description */}
+      <View style={styles.descriptionContainer}>
+        <Text style={styles.sectionTitle}>Description</Text>
+        <Text style={styles.description}>
+          {selectedLocation.description || 'No description available.'}
+        </Text>
+      </View>
+
+      {/* Coordinates */}
+      <View style={styles.infoContainer}>
+        <View>
+          <Text style={styles.infoLabel}>Latitude</Text>
+          <Text style={styles.infoValue}>
+            {selectedLocation.latitude}
+          </Text>
         </View>
-        <Text>ID: {selectedLocation.id}</Text>
-        <Text>Description: {selectedLocation.description} </Text>
-        <Text>Latitude: {selectedLocation.latitude}</Text>
-        <Text>Longitude: {selectedLocation.longitude}</Text>
-      </BottomSheetView>
-    )}
 
+        <View>
+          <Text style={styles.infoLabel}>Longitude</Text>
+          <Text style={styles.infoValue}>
+            {selectedLocation.longitude}
+          </Text>
+        </View>
+      </View>
 
-  </BottomSheet>
+    </BottomSheetView>
+  )}
+</BottomSheet>
 
 
   <BottomSheet
@@ -367,10 +403,6 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-    image: {
-    width: 200,
-    height: 200,
-  },
   pictureContainer: {
     justifyContent: 'center',
     alignContent: 'center'
@@ -388,7 +420,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 24, 
   },
   locationSheet: {
-    // Adds horizontal space so it doesn't touch the screen edges
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   contentContainer: {
     padding: 16,
@@ -397,4 +431,80 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 20,
 },
+  containerPadding: {
+    padding: 20,
+  },
+
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#222',
+  },
+
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#eeeeee',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  closeButtonText: {
+    fontSize: 24,
+    color: '#444',
+    lineHeight: 26,
+  },
+
+  image: {
+    width: '100%',
+    height: 200,
+    borderRadius: 16,
+    marginBottom: 18,
+  },
+
+  descriptionContainer: {
+    marginBottom: 20,
+  },
+
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#777',
+    marginBottom: 6,
+  },
+
+  description: {
+    fontSize: 16,
+    color: '#222',
+    lineHeight: 23,
+  },
+
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#eeeeee',
+  },
+
+  infoLabel: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 4,
+  },
+
+  infoValue: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '600',
+  },
+
 });
