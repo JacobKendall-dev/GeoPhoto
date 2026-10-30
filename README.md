@@ -1,355 +1,195 @@
 # 📍 GeoPhoto
 
-GeoPhoto is a full-stack location-based photo application that allows users to capture and associate photos with geographic locations.
+GeoPhoto is a location-based photo-sharing application built around a simple idea: connecting photographs to the places where they were taken.
 
-The project is being developed as a cross-platform application with a React Native mobile application, a React web application, an ASP.NET Core REST API, and a PostgreSQL database.
+Users can explore photos through an interactive map, discover locations shared by others, and contribute their own photos using the camera and GPS capabilities of a mobile device.
 
-> **Project Status:** In Active Development  
-> **Project Type:** Personal Full-Stack Project
+The project includes a React web application, a React Native mobile application, and a centralized ASP.NET Core backend connected to a PostgreSQL database.
+
+**Project Type:** Personal Full-Stack Project  
+**Status:** Developed as an ongoing portfolio project
 
 ---
 
-## 📱 Screenshots
+## 📸 Screenshots & Demonstrations
 
-Screenshots will be added as the web and mobile interfaces are further developed.
+Screenshots and demonstrations will be added here as the portfolio presentation is finalized.
 
 ### Mobile Application
 
-<img src="docs/images/mobile-map.png" alt="GeoPhoto Mobile Map" width="300">
+![GeoPhoto Mobile Map](docs/images/mobile-map.png)
 
 ### Location Details
 
-<img src="docs/images/location-details.png" alt="GeoPhoto Location Details" width="300">
+![GeoPhoto Location Details](docs/images/location-details.png)
 
 ### Web Application
 
-Incoming.
+*Screenshots coming soon.*
+
+### Live Demo & Downloads
+
+- **Website:** Coming soon
+- **Mobile Installation:** Coming soon
+- **Demo Video:** Coming soon
 
 ---
 
 ## ✨ Features
 
-### Currently Implemented
+GeoPhoto brings together map-based exploration, photo sharing, and social features.
 
-- Interactive map interface
-- Geographic location pins
-- Capture and upload location-based photos
-- Mobile application built with React Native and Expo
-- REST API built with ASP.NET Core
-- PostgreSQL database
-- Entity Framework Core database access
-- Entity Framework Core migrations
-- Location data stored through the backend API
-- Mobile-to-backend API communication
-- Location creation and retrieval
+### Maps & Location Discovery
+- Interactive map with geographic photo pins
+- Browse locations shared by other users
+- Select individual locations to view their content
+- Explore locations through different discovery and filtering options
 
-### In Development
+### Photo Sharing
+- Capture photos using a mobile device
+- Associate photos with geographic coordinates
+- Upload location-based content through the backend API
+- View shared photos and their associated locations
 
-- React web frontend
-- Location exploration feed
-- Location lists
-- Popular location lists
-- Filtering and discovery options
+### User Features
+- User registration and authentication
 - User profiles
-- Additional customization options
-- Improved location and pin interactions
+- Like and bookmark locations
+- View and post comments
+- Browse personal posts and saved locations
+
+### Cross-Platform Applications
+- React web application
+- React Native mobile application
+- Shared backend and database for both platforms
 
 ---
 
-## 🛠️ Technologies
+## 🛠️ Technology Stack
 
-### Mobile
-
-- React Native
-- Expo
-- Expo Router
-- TypeScript
-- JavaScript
-- Expo Location
-
-### Web
-
-- React
-- Vite
-- JavaScript
-- HTML
-- CSS
-
-### Backend
-
-- C#
-- ASP.NET Core
-- REST API
-- Entity Framework Core
-
-### Database
-
-- PostgreSQL
-- Npgsql
-- Entity Framework Core Migrations
-
-### Development Tools
-
-- Git
-- GitHub
-- Visual Studio
-- Visual Studio Code
-- pgAdmin
-- npm
+| Area | Technologies |
+|---|---|
+| Mobile | React Native, Expo, Expo Router, TypeScript |
+| Web | React, Vite, JavaScript, HTML, CSS |
+| Backend | C#, ASP.NET Core Web API |
+| Database | PostgreSQL |
+| ORM | Entity Framework Core, Npgsql |
+| Maps | Mapbox |
+| Authentication | ASP.NET Core Identity, JWT |
+| Development | Git, GitHub, Visual Studio, VS Code, pgAdmin |
 
 ---
 
 ## 🏗️ Architecture
 
-GeoPhoto uses a full-stack architecture with separate mobile and web clients communicating with a centralized ASP.NET Core backend.
+GeoPhoto uses a centralized backend architecture. The mobile and web applications operate as separate clients while sharing the same API and database.
 
-```text
-                         GeoPhoto
-                            │
-              ┌─────────────┴─────────────┐
-              │                           │
-              ▼                           ▼
-       React Native                    React
-          Mobile                        Web
-              │                           │
-              └─────────────┬─────────────┘
-                            │
-                       HTTP Requests
-                            │
-                            ▼
-                    ASP.NET Core API
-                            │
-                            ▼
-                    Entity Framework Core
-                            │
-                            ▼
-                       PostgreSQL
+```mermaid
+flowchart TD
+    A[GeoPhoto] --> B[Mobile Application]
+    A --> C[Web Application]
+
+    B --> D[ASP.NET Core REST API]
+    C --> D
+
+    D --> E[Entity Framework Core]
+    E --> F[(PostgreSQL)]
 ```
 
-### Frontend
+### Frontend Applications
 
-GeoPhoto has separate mobile and web clients.
+**Mobile — React Native & Expo**
 
-The mobile application is built using React Native, Expo, and Expo Router. The web application is being developed using React and Vite.
+The mobile application provides access to GeoPhoto's location and photo-sharing functionality. It uses device capabilities such as the camera and GPS to associate photographs with geographic coordinates.
 
-Both clients communicate with the backend through HTTP requests to the REST API.
+**Web — React & Vite**
 
-This allows the mobile and web applications to share the same backend and database rather than implementing separate data systems for each platform.
+The web application provides a larger interface for exploring the map, browsing locations, and interacting with shared content.
 
-### Backend
+Both applications communicate with the same backend rather than maintaining separate application data.
 
-The backend is an ASP.NET Core Web API written in C#.
+### Backend — ASP.NET Core
 
-The API acts as the middle layer between the frontend applications and the PostgreSQL database.
+The backend is built with C# and ASP.NET Core Web API.
 
-It receives HTTP requests from the frontend, processes the requested operation, and uses Entity Framework Core to interact with the database.
+It handles application requests, authentication, authorization, and communication with the database. The API acts as the central point through which the frontend applications access application data.
 
-```text
-React Native / React
-        │
-        │ HTTP Request
-        ▼
-ASP.NET Core Controller
-        │
-        ▼
-Entity Framework Core
-        │
-        ▼
-PostgreSQL
-```
-
-### Entity Framework Core
-
-Entity Framework Core (EF Core) is the ORM used to connect the ASP.NET Core application to PostgreSQL.
-
-EF Core allows database entities to be represented as C# objects and provides an abstraction for querying and modifying database data.
-
-EF Core migrations are also used to create and update the PostgreSQL database schema as the application develops.
-
-### PostgreSQL
+### Database — PostgreSQL & Entity Framework Core
 
 PostgreSQL provides persistent storage for GeoPhoto's application data.
 
-The database stores information associated with locations and other application entities.
+Entity Framework Core serves as the ORM, allowing database entities to be represented as C# objects and queried through the application's data context.
+
+EF Core migrations are used to manage changes to the database schema as the application evolves.
 
 ---
 
-## 🌐 REST API
+## 📍 How Location Sharing Works
 
-The backend exposes REST API endpoints that allow the frontend applications to interact with GeoPhoto's data.
+One of GeoPhoto's central features is connecting a photograph to its geographic location.
 
-### Current Endpoints
+The general workflow is:
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| GET | `/locations` | Retrieve stored locations |
-| POST | `/locations` | Create a new location |
+1. A user captures a photograph using the mobile application.
+2. The application obtains the device's geographic coordinates.
+3. The photo and associated location information are submitted to the backend.
+4. The ASP.NET Core API processes the request.
+5. Entity Framework Core communicates with PostgreSQL.
+6. The saved location can be retrieved by the frontend applications and displayed on the map.
 
-The API is designed so that both the mobile and web applications can communicate with the same backend services.
-
-As development continues, additional endpoints will be added for functionality such as updating, deleting, filtering, and retrieving individual locations.
-
----
-
-## 📍 Location System
-
-Location functionality is one of the core components of GeoPhoto.
-
-The mobile application can obtain geographic coordinates from the device and associate those coordinates with uploaded content.
-
-Locations are represented using geographic coordinates such as latitude and longitude.
-
-The general data flow is:
-
-```text
-User
- │
- ▼
-Mobile Application
- │
- │ Capture Photo / Location
- ▼
-React Native
- │
- │ HTTP Request
- ▼
-ASP.NET Core API
- │
- ▼
-Entity Framework Core
- │
- ▼
-PostgreSQL
- │
- ▼
-Location Available to Frontend
- │
- ▼
-Display Location on Map
-```
-
-Once a location has been stored, the application can retrieve the location data through the API and display it as a pin on the map.
+This makes geographic information part of the application's stored content, allowing users to explore photographs through their locations.
 
 ---
 
-## 🗺️ Map Functionality
+## 🔐 Authentication & Data Management
 
-The map serves as the primary interface for discovering location-based content.
+GeoPhoto uses ASP.NET Core Identity and JWT-based authentication to support user accounts and protected application functionality.
 
-Current functionality includes:
+The backend is responsible for controlling access to protected operations, while the frontend applications communicate with the API through HTTP requests.
 
-- Displaying geographic locations as map pins
-- Selecting locations
-- Creating new locations
-- Associating content with geographic coordinates
-- Sending location data to the backend API
-- Retrieving stored locations from the API
+Both clients share the same backend services and database, providing a consistent application experience across platforms.
 
-Planned functionality includes:
-
-- Improved pin interactions
-- Location exploration
-- Location lists
-- Popular locations
-- Filtering and discovery tools
-- Improved focus and camera behavior when creating locations
-
----
-
-## 📸 Photo & Location Workflow
-
-A primary goal of GeoPhoto is to connect photographs with geographic locations.
-
-The intended workflow is:
-
-```text
-User
- │
- ▼
-Capture Photo
- │
- ▼
-Obtain Geographic Coordinates
- │
- ▼
-Create Location Data
- │
- ▼
-Send Data to REST API
- │
- ▼
-ASP.NET Core
- │
- ▼
-Entity Framework Core
- │
- ▼
-PostgreSQL
- │
- ▼
-Location Available to Frontend
- │
- ▼
-Display Location on Map
-```
-
-This allows the geographic location to become part of the application's data rather than simply being a temporary value used by the mobile device.
-
----
-
-## 👨‍💻 Development Focus
-
-GeoPhoto is being developed as a full-stack project to gain practical experience across multiple layers of application development.
-
-The project provides hands-on experience with:
-
-- React Native mobile development
-- React web development
-- Expo and Expo Router
-- C# development
-- ASP.NET Core
-- REST API development
-- Entity Framework Core
-- PostgreSQL
-- Database migrations
-- HTTP client/server communication
-- Geographic coordinates
-- Map-based interfaces
-- Cross-platform application architecture
-- Git and GitHub
-- Full-stack application development
+Sensitive configuration, including database credentials and authentication secrets, should be supplied through local environment-specific configuration rather than committed to the repository.
 
 ---
 
 ## 🚀 Getting Started
 
+GeoPhoto is organized as a single repository containing three separate projects.
+
 ### Prerequisites
 
-To run GeoPhoto locally, you will need:
-
-- Node.js
-- npm
+- Node.js and npm
 - .NET SDK
 - PostgreSQL
 - Git
 - Visual Studio or Visual Studio Code
-- An Expo-compatible mobile device or emulator for the mobile application
+- An Expo-compatible device or emulator for mobile development
 
-### Backend
+### 1. Clone the Repository
 
-Navigate to the backend project:
-
-```powershell
-cd MapAppApi
+```bash
+git clone <repository-url>
+cd GeoPhoto
 ```
 
-Restore the .NET dependencies:
+### 2. Backend — ASP.NET Core API
+
+Navigate to the API project:
+
+```powershell
+cd GeoPhoto-API
+```
+
+Restore dependencies:
 
 ```powershell
 dotnet restore
 ```
 
-Apply the Entity Framework Core migrations:
+Configure the PostgreSQL connection string and other required application settings locally.
+
+Apply database migrations:
 
 ```powershell
 dotnet ef database update
@@ -361,14 +201,34 @@ Start the API:
 dotnet run
 ```
 
-The API will then be available for the frontend applications to communicate with.
+### 3. Web — React & Vite
 
-### Mobile Application
-
-Navigate to the mobile project:
+Open a separate terminal and navigate to the web project:
 
 ```powershell
-cd <mobile-project-folder>
+cd GeoPhoto-Web
+```
+
+Install dependencies:
+
+```powershell
+npm install
+```
+
+Start the development server:
+
+```powershell
+npm run dev
+```
+
+Vite will provide a local address where the web application can be accessed.
+
+### 4. Mobile — React Native & Expo
+
+Open another terminal and navigate to the mobile project:
+
+```powershell
+cd GeoPhoto-Mobile
 ```
 
 Install dependencies:
@@ -383,120 +243,47 @@ Start the Expo development server:
 npx expo start
 ```
 
-The mobile application can then be opened using an Expo-compatible physical device or emulator.
+The application can then be opened using an Expo-compatible physical device or emulator.
 
-### Web Application
-
-Navigate to the web frontend:
-
-```powershell
-cd <web-project-folder>
-```
-
-Install dependencies:
-
-```powershell
-npm install
-```
-
-Start the Vite development server:
-
-```powershell
-npm run dev
-```
-
-The web application can then be opened using the local development address provided by Vite.
-
-> **Note:** Database connection strings, API addresses, and other environment-specific configuration should be configured locally rather than committed to the repository.
+**Note:** The API address, database connection string, authentication configuration, and other environment-specific settings must be configured for your local environment. Do not commit credentials or private API keys to GitHub.
 
 ---
 
-## 🔐 Security
+## 💡 Development & Technical Focus
 
-GeoPhoto separates the frontend applications from the backend and database.
+Building GeoPhoto has involved working across several areas of software development:
 
-The frontend applications communicate with the ASP.NET Core API rather than connecting directly to PostgreSQL.
+- Designing and implementing REST API endpoints
+- Building separate web and mobile frontend applications
+- Managing relational data with PostgreSQL
+- Using Entity Framework Core for database access and migrations
+- Implementing authentication and authorization
+- Integrating geographic coordinates and interactive maps
+- Working with device camera and location permissions
+- Connecting frontend applications to backend services
+- Organizing a multi-project Git repository
 
-This architecture allows the backend to control how application data is created, retrieved, and modified.
-
-Sensitive configuration such as database credentials, API keys, and other environment-specific secrets should not be committed to the repository.
-
----
-
-## ⚠️ Project Status
-
-GeoPhoto is currently under active development.
-
-The mobile application and backend contain the primary implemented functionality, while the web frontend is still being developed.
-
-Some planned functionality has not yet been implemented.
-
-The application should therefore be considered a development and portfolio project rather than a production-ready application.
+The goal has been to build one cohesive application rather than three disconnected projects.
 
 ---
 
 ## 🔮 Future Improvements
 
-Planned improvements include:
+Some areas I'd like to continue improving include:
 
-- Complete the React web frontend
-- Improve the map user interface
-- Add location exploration feeds
-- Add location lists
-- Add popular locations
-- Add filtering functionality
-- Add user profiles
-- Add additional customization options
-- Improve pin creation and interaction
-- Add improved photo management
-- Expand the REST API
-- Add update and delete functionality for locations
-- Improve error handling
-- Add automated testing
-- Improve authentication and authorization
-- Improve application state management
-- Deploy the application for public use
+- Expanding automated test coverage
+- Improving error handling and validation
+- Refining the map and location discovery experience
+- Improving photo storage and management
+- Expanding API functionality
+- Continuing deployment and infrastructure improvements
 
 ---
 
-## 📚 Project Goals
+## 👨‍💻 About the Project
 
-The primary goal of GeoPhoto is to build a complete application spanning mobile development, web development, backend development, and database management.
+GeoPhoto started as an opportunity to build something more substantial than an isolated programming exercise.
 
-Rather than building only a standalone frontend, the project is designed around a full-stack architecture:
+I wanted to work on a project that involved multiple parts of software development: designing interfaces, building APIs, managing a database, integrating device functionality, and connecting everything into a working application.
 
-```text
-Frontend
-   │
-   ▼
-REST API
-   │
-   ▼
-Application Logic
-   │
-   ▼
-Entity Framework Core
-   │
-   ▼
-PostgreSQL
-```
-
-The architecture allows the same backend services to support both the mobile and web applications while providing hands-on experience with modern full-stack development.
-
----
-
-## 📌 Project Highlights
-
-- Cross-platform mobile application
-- React web application
-- C# backend
-- ASP.NET Core REST API
-- Entity Framework Core
-- PostgreSQL relational database
-- Geographic location functionality
-- Photo and location management
-- Shared backend between mobile and web clients
-- Database migrations and schema management
-- Map-based user interface
-- Git-based development
-- Full-stack application development
+It has grown into a cross-platform project that brings together the technologies I've been working with across web, mobile, and backend development.
