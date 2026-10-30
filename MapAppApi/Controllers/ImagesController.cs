@@ -1,52 +1,98 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-
 
 namespace MapAppApi.Controllers
 {
     [ApiController]
     [Route("images")]
-    public class ImagesController: ControllerBase
+    public class ImagesController : ControllerBase
     {
-    private readonly IWebHostEnvironment _env;
+        private readonly IWebHostEnvironment _env;
 
-    public ImagesController(IWebHostEnvironment env)
-    {
-        _env = env;
-    }
+        public ImagesController(IWebHostEnvironment env)
+        {
+            _env = env;
+        }
 
-    [HttpPost]
-    public async Task<IActionResult> UploadFile([FromForm] IFormFile image)
-    {
-            //BEGINNING OF VALIDATION
+        [HttpPost("location")]
+        public async Task<IActionResult> UploadLocationImage(
+            [FromForm] IFormFile image)
+        {
+            return await UploadImage(image, "locations");
+        }
+
+        [HttpPost("profile")]
+        public async Task<IActionResult> UploadProfileImage(
+            [FromForm] IFormFile image)
+        {
+            return await UploadImage(image, "profiles");
+        }
+
+        private async Task<IActionResult> UploadImage(
+            IFormFile image,
+            string folder)
+        {
             if (image == null || image.Length == 0)
+            {
                 return BadRequest("No file uploaded");
+            }
 
             long size = image.Length;
-            if (size > 10 *1024 * 1024)
-                return BadRequest("Maximum size of a file 10 mb");
 
-            List<string> validExtentions = new List<string>() {".jpg", ".png", ".gif", "jpeg"};
-            string extention = Path.GetExtension(image.FileName).ToLower();
-            if (!validExtentions.Contains(extention))
+            if (size > 10 * 1024 * 1024)
             {
-                return BadRequest($"Extentions is not valid. Allowed: {string.Join(',', validExtentions)}");
+                return BadRequest(
+                    "Maximum size of a file is 10 MB");
             }
-            //END OF VALIDATION
 
+            List<string> validExtensions = new List<string>()
+            {
+                ".jpg",
+                ".jpeg",
+                ".png",
+                ".gif"
+            };
 
-            string path = Path.Combine(_env.WebRootPath, "images");
+            string extension =
+                Path.GetExtension(image.FileName).ToLower();
+
+            if (!validExtensions.Contains(extension))
+            {
+                return BadRequest(
+                    $"Extension is not valid. Allowed: " +
+                    $"{string.Join(',', validExtensions)}");
+            }
+
+            string path = Path.Combine(
+                _env.WebRootPath,
+                "images",
+                folder);
+
             if (!Directory.Exists(path))
+            {
                 Directory.CreateDirectory(path);
+            }
 
-            string fileName = Guid.NewGuid().ToString() + extention;
+            string fileName =
+                Guid.NewGuid().ToString() + extension;
 
-            using FileStream stream = new FileStream(Path.Combine(path, fileName), FileMode.Create);
+            string filePath =
+                Path.Combine(path, fileName);
+
+            using FileStream stream =
+                new FileStream(
+                    filePath,
+                    FileMode.Create);
+
             await image.CopyToAsync(stream);
 
-            var url = $"{Request.Scheme}://{Request.Host}/images/{fileName}";
+            var url =
+                $"{Request.Scheme}://{Request.Host}" +
+                $"/images/{folder}/{fileName}";
 
-            return Ok(new {imageUrl = url});
+            return Ok(new
+            {
+                imageUrl = url
+            });
         }
     }
 }
