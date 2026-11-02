@@ -13,19 +13,40 @@ The project includes a React web application, a React Native mobile application,
 
 ## 📸 Screenshots & Demonstrations
 
-Screenshots and demonstrations will be added here as the portfolio presentation is finalized.
+### Web Application
 
-### Mobile Application
+The web application provides an interactive map for exploring shared locations and viewing individual photo posts.
 
-![GeoPhoto Mobile Map](docs/images/mobile-map.png)
+![GeoPhoto Web Map]
+<img src="docs/images/web main.png" alt="GeoPhoto Mobile Map" width="300">
 
 ### Location Details
 
-![GeoPhoto Location Details](docs/images/location-details.png)
+Selecting a map pin opens the corresponding location and its associated content.
 
-### Web Application
+![GeoPhoto Location Details]
+<img src="docs/images/web location details.png" alt="GeoPhoto Mobile Map" width="300">
 
-*Screenshots coming soon.*
+### Mobile Application
+
+The mobile application provides a map-based interface for browsing shared locations.
+
+![GeoPhoto Mobile Map]
+<img src="docs/images/mobile main map.png" alt="GeoPhoto Mobile Map" width="300">
+
+### Photo Upload
+
+Users can capture or select a photo, provide a description, and associate it with their current geographic coordinates.
+
+![GeoPhoto Mobile Upload]
+<img src="docs/images/mobile upload.png" alt="GeoPhoto Mobile Map" width="300">
+
+### User Profile
+
+The profile provides access to a user's posts and bookmarked locations.
+
+![GeoPhoto Mobile Profile]
+<img src="docs/images/mobile profile.png" alt="GeoPhoto Mobile Map" width="300">
 
 ### Live Demo & Downloads
 
@@ -40,18 +61,21 @@ Screenshots and demonstrations will be added here as the portfolio presentation 
 GeoPhoto brings together map-based exploration, photo sharing, and social features.
 
 ### Maps & Location Discovery
+
 - Interactive map with geographic photo pins
 - Browse locations shared by other users
 - Select individual locations to view their content
 - Explore locations through different discovery and filtering options
 
 ### Photo Sharing
+
 - Capture photos using a mobile device
 - Associate photos with geographic coordinates
 - Upload location-based content through the backend API
 - View shared photos and their associated locations
 
 ### User Features
+
 - User registration and authentication
 - User profiles
 - Like and bookmark locations
@@ -59,6 +83,7 @@ GeoPhoto brings together map-based exploration, photo sharing, and social featur
 - Browse personal posts and saved locations
 
 ### Cross-Platform Applications
+
 - React web application
 - React Native mobile application
 - Shared backend and database for both platforms
@@ -86,14 +111,24 @@ GeoPhoto uses a centralized backend architecture. The mobile and web application
 
 ```mermaid
 flowchart TD
-    A[GeoPhoto] --> B[Mobile Application]
-    A --> C[Web Application]
+    subgraph Clients["Frontend Applications"]
+        Mobile["Mobile Application<br/>React Native & Expo"]
+        Web["Web Application<br/>React & Vite"]
+    end
 
-    B --> D[ASP.NET Core REST API]
-    C --> D
+    subgraph Backend["ASP.NET Core Backend"]
+        API["REST API<br/>C#"]
+        Auth["Authentication & Authorization<br/>Identity & JWT"]
+        EF["Entity Framework Core"]
+    end
 
-    D --> E[Entity Framework Core]
-    E --> F[(PostgreSQL)]
+    DB[("PostgreSQL Database")]
+
+    Mobile --> API
+    Web --> API
+    API --> Auth
+    API --> EF
+    EF --> DB
 ```
 
 ### Frontend Applications
@@ -203,7 +238,7 @@ dotnet run
 
 ### 3. Web — React & Vite
 
-Open a separate terminal and navigate to the web project:
+Open a separate terminal from the repository root and navigate to the web project:
 
 ```powershell
 cd GeoPhoto-Web
@@ -225,7 +260,7 @@ Vite will provide a local address where the web application can be accessed.
 
 ### 4. Mobile — React Native & Expo
 
-Open another terminal and navigate to the mobile project:
+Open another terminal from the repository root and navigate to the mobile project:
 
 ```powershell
 cd GeoPhoto-Mobile
