@@ -285,7 +285,7 @@ npx expo start
 
 The application can then be opened using an Expo-compatible physical device or emulator.
 
-**Note:** The API address, database connection string, authentication configuration, and other environment-specific settings must be configured for your local environment. Do not commit credentials or private API keys to GitHub.
+**Note:** The backend must be running and connected to PostgreSQL for the applications to communicate with the API. Configure the API address and required environment-specific settings for your local environment. Do not commit credentials or private API keys to GitHub.
 
 ---
 
