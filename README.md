@@ -17,36 +17,41 @@ The project includes a React web application, a React Native mobile application,
 
 The web application provides an interactive map for exploring shared locations and viewing individual photo posts.
 
-![GeoPhoto Web Map]
-<img src="docs/images/web main.png" alt="GeoPhoto Mobile Map" width="300">
+<p align="center">
+  <img src="docs/images/web%20main.png" alt="GeoPhoto Web Application Map" width="650">
+</p>
 
 ### Location Details
 
 Selecting a map pin opens the corresponding location and its associated content.
 
-![GeoPhoto Location Details]
-<img src="docs/images/web location details.png" alt="GeoPhoto Mobile Map" width="300">
+<p align="center">
+  <img src="docs/images/web%20location%20details.png" alt="GeoPhoto Web Location Details" width="650">
+</p>
 
 ### Mobile Application
 
 The mobile application provides a map-based interface for browsing shared locations.
 
-![GeoPhoto Mobile Map]
-<img src="docs/images/mobile main map.png" alt="GeoPhoto Mobile Map" width="300">
+<p align="center">
+  <img src="docs/images/mobile%20main%20map.png" alt="GeoPhoto Mobile Map" width="300">
+</p>
 
 ### Photo Upload
 
 Users can capture or select a photo, provide a description, and associate it with their current geographic coordinates.
 
-![GeoPhoto Mobile Upload]
-<img src="docs/images/mobile upload.png" alt="GeoPhoto Mobile Map" width="300">
+<p align="center">
+  <img src="docs/images/mobile%20upload.png" alt="GeoPhoto Mobile Photo Upload" width="300">
+</p>
 
 ### User Profile
 
 The profile provides access to a user's posts and bookmarked locations.
 
-![GeoPhoto Mobile Profile]
-<img src="docs/images/mobile profile.png" alt="GeoPhoto Mobile Map" width="300">
+<p align="center">
+  <img src="docs/images/mobile%20profile.png" alt="GeoPhoto Mobile Profile" width="300">
+</p>
 
 ### Live Demo & Downloads
 
