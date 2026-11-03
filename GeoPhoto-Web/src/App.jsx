@@ -3,6 +3,7 @@ import RequireAuth from "./components/RequireAuth";
 import PublicOnly from "./components/PublicOnly";
 import ConfirmEmail from "./pages/ConfirmEmail";
 import ResendConfirmation from "./pages/ResendConfirmation";
+import RecoverRegistration from "./pages/RecoverRegistration";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/resend-confirmation" element={<ResendConfirmation />} />
+        <Route path="/recover-registration" element={<RecoverRegistration />} />
       </Route>
 
       {/* Only accessible while logged in */}

@@ -1,0 +1,58 @@
+.recover-registration-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.recover-registration-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 32px;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.recover-registration-card h1 {
+  margin-bottom: 16px;
+}
+
+.recover-registration-card p {
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.recover-registration-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.recover-registration-card input {
+  padding: 12px;
+}
+
+.recover-registration-card button {
+  padding: 12px;
+  background: #2457d6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.recover-registration-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recover-registration-card a {
+  color: #2457d6;
+  text-decoration: none;
+}

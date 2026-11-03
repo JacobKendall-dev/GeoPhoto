@@ -231,6 +231,109 @@ app.MapPost("/resend-confirmation", async (
     return Results.Ok(new { message = genericMessage });
 });
 
+app.MapPost("/recover-registration", async (
+    RecoverRegistrationRequest request,
+    UserManager<ApplicationUser> userManager,
+    EmailService emailService) =>
+{
+    var genericMessage =
+        "If the account can be recovered, a confirmation email will be sent to the new address.";
+
+    var account = await userManager.FindByNameAsync(
+        request.Username.Trim());
+
+    // Only allow recovery of accounts that haven't been verified.
+    if (account == null || account.EmailConfirmed)
+    {
+        return Results.Ok(new { message = genericMessage });
+    }
+
+    var passwordValid = await userManager.CheckPasswordAsync(
+        account,
+        request.Password);
+
+    if (!passwordValid)
+    {
+        return Results.Ok(new { message = genericMessage });
+    }
+
+    var newEmail = request.NewEmail.Trim();
+
+    var existingEmail = await userManager.FindByEmailAsync(newEmail);
+
+    if (existingEmail != null && existingEmail.Id != account.Id)
+    {
+        return Results.BadRequest(new
+        {
+            message = "That email address is already associated with another account."
+        });
+    }
+
+    var emailResult = await userManager.SetEmailAsync(
+        account,
+        newEmail);
+
+    if (!emailResult.Succeeded)
+    {
+        return Results.BadRequest(emailResult.Errors);
+    }
+
+    account.EmailConfirmed = false;
+
+    var stampResult =
+        await userManager.UpdateSecurityStampAsync(account);
+
+    if (!stampResult.Succeeded)
+    {
+        return Results.BadRequest(stampResult.Errors);
+    }
+
+    var token =
+        await userManager.GenerateEmailConfirmationTokenAsync(account);
+
+    var confirmationLink =
+        $"https://trygeophoto.com/confirm-email" +
+        $"?userId={Uri.EscapeDataString(account.Id)}" +
+        $"&token={Uri.EscapeDataString(token)}";
+
+    var safeLink =
+        System.Net.WebUtility.HtmlEncode(confirmationLink);
+
+    try
+    {
+        await emailService.SendEmailAsync(
+            newEmail,
+            "Confirm your GeoPhoto email address",
+            $"""
+            <h2>Welcome back to GeoPhoto!</h2>
+            <p>Your registration email address has been updated.</p>
+            <p>Please confirm your new email address:</p>
+            <p><a href="{safeLink}">Confirm Email Address</a></p>
+            <p>If you did not request this change, you can ignore this email.</p>
+            """,
+            $"""
+            Your GeoPhoto registration email address has been updated.
+
+            Please confirm your new email address by visiting:
+
+            {confirmationLink}
+
+            If you did not request this change, you can ignore this email.
+            """
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Problem(
+            title: "Email updated, but confirmation email could not be sent.",
+            detail: "Your account is saved with the new email address. Please try requesting another confirmation email.",
+            statusCode: 503
+        );
+    }
+
+    return Results.Ok(new { message = genericMessage });
+});
+
 app.MapPost("/login", async (
     LoginRequest request,
     UserManager<ApplicationUser> userManager) =>
@@ -370,7 +473,8 @@ app.MapGet("/me", async (
 app.MapPut("/me", async (
     UpdateAccountRequest request,
     ClaimsPrincipal user,
-    UserManager<ApplicationUser> userManager) =>
+    UserManager<ApplicationUser> userManager,
+    EmailService emailService) =>
 {
     var userId = user.FindFirstValue(
         ClaimTypes.NameIdentifier);
@@ -413,10 +517,14 @@ app.MapPut("/me", async (
     }
 
     if (!string.IsNullOrWhiteSpace(request.Email) &&
-        request.Email != currentUser.Email)
+        !string.Equals(
+            request.Email.Trim(),
+            currentUser.Email,
+            StringComparison.OrdinalIgnoreCase))
     {
-        var existingEmail = await userManager.FindByEmailAsync(
-            request.Email);
+        var newEmail = request.Email.Trim();
+
+        var existingEmail = await userManager.FindByEmailAsync(newEmail);
 
         if (existingEmail != null &&
             existingEmail.Id != currentUser.Id)
@@ -429,11 +537,66 @@ app.MapPut("/me", async (
 
         var emailResult = await userManager.SetEmailAsync(
             currentUser,
-            request.Email.Trim());
+            newEmail);
 
         if (!emailResult.Succeeded)
         {
             return Results.BadRequest(emailResult.Errors);
+        }
+
+        // Changing the email requires confirmation again.
+        currentUser.EmailConfirmed = false;
+
+        // Invalidate previously generated confirmation tokens.
+        var stampResult =
+            await userManager.UpdateSecurityStampAsync(currentUser);
+
+        if (!stampResult.Succeeded)
+        {
+            return Results.BadRequest(stampResult.Errors);
+        }
+
+        var token =
+            await userManager.GenerateEmailConfirmationTokenAsync(currentUser);
+
+        var confirmationLink =
+            $"https://trygeophoto.com/confirm-email" +
+            $"?userId={Uri.EscapeDataString(currentUser.Id)}" +
+            $"&token={Uri.EscapeDataString(token)}";
+
+        var safeLink =
+            System.Net.WebUtility.HtmlEncode(confirmationLink);
+
+        try
+        {
+            await emailService.SendEmailAsync(
+                newEmail,
+                "Confirm your new GeoPhoto email address",
+                $"""
+                <h2>Confirm your new email address</h2>
+                <p>You recently changed the email address associated with your GeoPhoto account.</p>
+                <p>Please confirm your new email address:</p>
+                <p><a href="{safeLink}">Confirm Email Address</a></p>
+                <p>If you did not make this change, please contact GeoPhoto support.</p>
+                """,
+                $"""
+                You recently changed the email address associated with your GeoPhoto account.
+
+                Please confirm your new email address by visiting:
+
+                {confirmationLink}
+
+                If you did not make this change, please contact GeoPhoto support.
+                """
+            );
+        }
+        catch (Exception)
+        {
+            return Results.Problem(
+                title: "Email updated, but confirmation email could not be sent.",
+                detail: "Your new email address is saved, but you must request another confirmation email.",
+                statusCode: 503
+            );
         }
     }
 
@@ -465,11 +628,19 @@ app.MapPut("/me", async (
         }
     }
 
-    await userManager.UpdateAsync(currentUser);
+    var updateResult = await userManager.UpdateAsync(currentUser);
+
+    if (!updateResult.Succeeded)
+    {
+        return Results.BadRequest(updateResult.Errors);
+    }
 
     return Results.Ok(new
     {
-        message = "Account updated successfully."
+        message = currentUser.EmailConfirmed
+            ? "Account updated successfully."
+            : "Account updated. Please check your new email address and confirm it before logging in.",
+        emailConfirmationRequired = !currentUser.EmailConfirmed
     });
 })
 .RequireAuthorization();

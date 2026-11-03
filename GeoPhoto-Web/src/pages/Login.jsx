@@ -86,6 +86,11 @@ function Login() {
           <Link to="/resend-confirmation">Resend confirmation email</Link>
         </p>
 
+        <p>
+          Entered the wrong email when registering?{" "}
+          <Link to="/recover-registration">Recover your registration</Link>
+        </p>
+
         <p className="register-link">
           Don't have an account?{" "}
           <Link to="/register">Register</Link>
