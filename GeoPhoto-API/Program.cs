@@ -17,7 +17,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentityCore<ApplicationUser>()
-    .AddEntityFrameworkStores<AppDbContext>();
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -45,7 +46,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors();
 
 builder.Services.AddControllers();
+
 builder.Services.AddSingleton<CloudinaryService>();
+builder.Services.AddHttpClient<EmailService>();
 
 var app = builder.Build();
 
@@ -62,7 +65,10 @@ app.MapControllers();
 
 app.MapGet("/", () => "API Running");
 
-app.MapPost("/register", async (RegisterRequest request, UserManager<ApplicationUser> userManager) =>
+app.MapPost("/register", async (
+    RegisterRequest request,
+    UserManager<ApplicationUser> userManager,
+    EmailService emailService) =>
 {
     var user = new ApplicationUser
     {
@@ -79,10 +85,150 @@ app.MapPost("/register", async (RegisterRequest request, UserManager<Application
         return Results.BadRequest(result.Errors);
     }
 
+    var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+    var confirmationLink =
+        $"https://trygeophoto.com/confirm-email" +
+        $"?userId={Uri.EscapeDataString(user.Id)}" +
+        $"&token={Uri.EscapeDataString(token)}";
+
+    var safeLink = System.Net.WebUtility.HtmlEncode(confirmationLink);
+
+    try
+    {
+        await emailService.SendEmailAsync(
+            user.Email!,
+            "Confirm your GeoPhoto email address",
+            $"""
+            <h2>Welcome to GeoPhoto!</h2>
+            <p>Thanks for creating an account.</p>
+            <p>Please confirm your email address by clicking below:</p>
+            <p><a href="{safeLink}">Confirm Email Address</a></p>
+            <p>If you did not create this account, you can ignore this email.</p>
+            """,
+            $"""
+            Welcome to GeoPhoto!
+
+            Please confirm your email address by visiting this link:
+
+            {confirmationLink}
+
+            If you did not create this account, you can ignore this email.
+            """
+        );
+    }
+    catch (Exception)
+    {
+        return Results.Problem(
+            title: "Account created, but confirmation email could not be sent.",
+            detail: "Please try requesting a confirmation email again.",
+            statusCode: 503
+        );
+    }
+
     return Results.Ok(new
     {
-        message = "User registered successfully"
+        message = "Account created! Please check your email to confirm your account."
     });
+});
+
+app.MapGet("/confirm-email", async (
+    string userId,
+    string token,
+    UserManager<ApplicationUser> userManager) =>
+{
+    var user = await userManager.FindByIdAsync(userId);
+
+    if (user == null)
+    {
+        return Results.BadRequest(new
+        {
+            message = "Invalid confirmation link."
+        });
+    }
+
+    if (user.EmailConfirmed)
+    {
+        return Results.Ok(new
+        {
+            message = "Your email address has already been confirmed."
+        });
+    }
+
+    var result = await userManager.ConfirmEmailAsync(user, token);
+
+    if (!result.Succeeded)
+    {
+        return Results.BadRequest(new
+        {
+            message = "This confirmation link is invalid or has expired."
+        });
+    }
+
+    return Results.Ok(new
+    {
+        message = "Your email address has been successfully confirmed."
+    });
+});
+
+app.MapPost("/resend-confirmation", async (
+    ResendConfirmationRequest request,
+    UserManager<ApplicationUser> userManager,
+    EmailService emailService,
+    ILogger<Program> logger) =>
+{
+    var user = await userManager.FindByEmailAsync(request.Email.Trim());
+
+    // Return the same response regardless of whether the account exists.
+    // This prevents people from discovering which email addresses are registered.
+    const string genericMessage =
+        "If an unconfirmed account exists for that email, a confirmation email will be sent.";
+
+    if (user == null || user.EmailConfirmed)
+    {
+        return Results.Ok(new { message = genericMessage });
+    }
+
+    try
+    {
+        var token =
+            await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        var confirmationLink =
+            $"https://trygeophoto.com/confirm-email" +
+            $"?userId={Uri.EscapeDataString(user.Id)}" +
+            $"&token={Uri.EscapeDataString(token)}";
+
+        var safeLink =
+            System.Net.WebUtility.HtmlEncode(confirmationLink);
+
+        await emailService.SendEmailAsync(
+            user.Email!,
+            "Confirm your GeoPhoto email address",
+            $"""
+            <h2>Confirm your GeoPhoto email</h2>
+            <p>Please click the link below to confirm your email address:</p>
+            <p><a href="{safeLink}">Confirm Email Address</a></p>
+            <p>If you did not request this, you can ignore this email.</p>
+            """,
+            $"""
+            Please confirm your GeoPhoto email address by visiting:
+
+            {confirmationLink}
+
+            If you did not request this, you can ignore this email.
+            """
+        );
+    }
+    catch (Exception exception)
+    {
+        logger.LogError(
+            exception,
+            "Failed to resend confirmation email."
+        );
+    }
+
+    return Results.Ok(new { message = genericMessage });
 });
 
 app.MapPost("/login", async (
@@ -109,6 +255,14 @@ app.MapPost("/login", async (
         return Results.BadRequest(new
         {
             message = "Invalid email or password."
+        });
+    }
+
+    if (!user.EmailConfirmed)
+    {
+        return Results.BadRequest(new
+        {
+            message = "Please confirm your email address before logging in."
         });
     }
 

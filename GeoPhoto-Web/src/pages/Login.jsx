@@ -51,7 +51,7 @@ function Login() {
     <div className="login-page">
       <div className="login-card">
         <h1>Welcome Back</h1>
-        <p>Log in to your MapApp account.</p>
+        <p>Log in to your GeoPhoto account.</p>
 
         <form onSubmit={handleSubmit}>
           <label htmlFor="email">Email</label>
@@ -80,6 +80,11 @@ function Login() {
         </form>
 
         {message && <p role="status">{message}</p>}
+
+        <p>
+          Didn't receive a confirmation email?{" "}
+          <Link to="/resend-confirmation">Resend confirmation email</Link>
+        </p>
 
         <p className="register-link">
           Don't have an account?{" "}

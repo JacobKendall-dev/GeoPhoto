@@ -1,6 +1,6 @@
+
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 import "./Register.css";
 
 const API_URL = "https://geophoto-production-581e.up.railway.app";
@@ -15,9 +15,7 @@ function Register() {
   const [message, setMessage] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  const [registrationComplete, setRegistrationComplete] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -57,32 +55,10 @@ function Register() {
         return;
       }
 
-      // Some register endpoints return a token; others do not.
-      let token = responseData.token;
-
-      if (!token) {
-        const loginRes = await fetch(`${API_URL}/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        });
-
-        const loginData = await loginRes.json().catch(() => ({}));
-
-        if (!loginRes.ok || !loginData.token) {
-          setMessage("Account created! Please log in.");
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        token = loginData.token;
-      }
-
-      // Updates localStorage AND the shared AuthContext state.
-      await login(token);
-      navigate("/", { replace: true });
+      setRegistrationComplete(true);
+      setMessage(
+        "Your account has been created! Please check your email and click the confirmation link before logging in."
+      );
     } catch (error) {
       console.error("Registration error:", error);
       setMessage("Unable to connect to the server. Please try again.");
@@ -95,92 +71,104 @@ function Register() {
     <div className="register-page">
       <div className="register-card">
         <h1>Create an Account</h1>
-        <p>Register to start adding locations to the map.</p>
 
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            autoComplete="email"
-            required
-            placeholder="Enter your email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
+        {registrationComplete ? (
+          <>
+            <p role="status">{message}</p>
+            <p className="login-link">
+              Already confirmed? <Link to="/login">Log in</Link>
+            </p>
+          </>
+        ) : (
+          <>
+            <p>Register to start adding locations to the map.</p>
 
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            autoComplete="new-password"
-            required
-            placeholder="Enter your password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
+            <form onSubmit={handleSubmit}>
+              <label htmlFor="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                autoComplete="email"
+                required
+                placeholder="Enter your email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
 
-          <label htmlFor="confirm-password">Confirm Password</label>
-          <input
-            type="password"
-            id="confirm-password"
-            autoComplete="new-password"
-            required
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-          />
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                autoComplete="new-password"
+                required
+                placeholder="Enter your password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
 
-          <label htmlFor="username">Username</label>
-          <input
-            type="text"
-            id="username"
-            autoComplete="username"
-            required
-            placeholder="Choose a username"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-          />
+              <label htmlFor="confirm-password">Confirm Password</label>
+              <input
+                type="password"
+                id="confirm-password"
+                autoComplete="new-password"
+                required
+                placeholder="Confirm your password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+              />
 
-          <div className="register-name-row">
-            <div className="register-name-field">
-              <label htmlFor="first-name">First Name</label>
+              <label htmlFor="username">Username</label>
               <input
                 type="text"
-                id="first-name"
-                autoComplete="given-name"
+                id="username"
+                autoComplete="username"
                 required
-                placeholder="First name"
-                value={firstName}
-                onChange={(event) => setFirstName(event.target.value)}
+                placeholder="Choose a username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
               />
-            </div>
 
-            <div className="register-name-field">
-              <label htmlFor="last-name">Last Name</label>
-              <input
-                type="text"
-                id="last-name"
-                autoComplete="family-name"
-                required
-                placeholder="Last name"
-                value={lastName}
-                onChange={(event) => setLastName(event.target.value)}
-              />
-            </div>
-          </div>
+              <div className="register-name-row">
+                <div className="register-name-field">
+                  <label htmlFor="first-name">First Name</label>
+                  <input
+                    type="text"
+                    id="first-name"
+                    autoComplete="given-name"
+                    required
+                    placeholder="First name"
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
+                  />
+                </div>
 
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Creating Account..." : "Register"}
-          </button>
-        </form>
+                <div className="register-name-field">
+                  <label htmlFor="last-name">Last Name</label>
+                  <input
+                    type="text"
+                    id="last-name"
+                    autoComplete="family-name"
+                    required
+                    placeholder="Last name"
+                    value={lastName}
+                    onChange={(event) => setLastName(event.target.value)}
+                  />
+                </div>
+              </div>
 
-        {message && <p role="alert">{message}</p>}
-        {passwordError && <p role="alert">{passwordError}</p>}
+              <button type="submit" disabled={submitting}>
+                {submitting ? "Creating Account..." : "Register"}
+              </button>
+            </form>
 
-        <p className="login-link">
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
+            {message && <p role="alert">{message}</p>}
+            {passwordError && <p role="alert">{passwordError}</p>}
+
+            <p className="login-link">
+              Already have an account? <Link to="/login">Log in</Link>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
