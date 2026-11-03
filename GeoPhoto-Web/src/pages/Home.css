@@ -1,4 +1,3 @@
-
 * {
   box-sizing: border-box;
 }
@@ -6,12 +5,12 @@
 .body {
   --sidebar-width: 68px;
   --panel-width: 340px;
-  --surface: #ffffff;
-  --surface-muted: #f5f6f8;
-  --text: #20242b;
-  --muted: #6b7280;
-  --border: #e1e4e8;
-  --accent: #2457d6;
+  --surface: #292d33;
+  --surface-muted: #343a43;
+  --text: #f4f5f7;
+  --muted: #b5bdc8;
+  --border: #454c57;
+  --accent: #5685ed;
 
   display: flex;
   flex-direction: column;
@@ -91,7 +90,6 @@
   background: var(--surface-muted);
 }
 
-/* The main region takes up all remaining vertical space. */
 .mapMain {
   position: relative;
   flex: 1 1 auto;
@@ -115,7 +113,6 @@
   background: #e8edf2;
 }
 
-/* Mapbox needs a container with an actual width and height. */
 #map {
   position: absolute;
   inset: 0;
@@ -125,7 +122,6 @@
   min-height: 0;
 }
 
-/* Fixed icon rail overlays the map. */
 .sidebarRail {
   position: absolute;
   z-index: 5;
@@ -140,7 +136,7 @@
   padding: 12px 8px;
   background: var(--surface);
   border-right: 1px solid var(--border);
-  box-shadow: 2px 0 8px rgb(0 0 0 / 5%);
+  box-shadow: 2px 0 8px rgb(0 0 0 / 20%);
 }
 
 .sidebarTab {
@@ -156,7 +152,7 @@
   padding: 5px 2px;
   border: 1px solid transparent;
   border-radius: 4px;
-  color: #626b78;
+  color: #d0d5dd;
   background: transparent;
   cursor: pointer;
   transition:
@@ -172,8 +168,8 @@
 
 .sidebarTab.active {
   color: var(--accent);
-  background: #edf2ff;
-  border-color: #dbe5ff;
+  background: #263754;
+  border-color: #38527e;
 }
 
 .sidebarTab svg {
@@ -186,7 +182,6 @@
   line-height: 1.2;
 }
 
-/* Sliding panel opens beside the icon rail. */
 .sidebarContentPanel {
   position: absolute;
   z-index: 6;
@@ -199,7 +194,7 @@
   min-width: 0;
   background: var(--surface);
   border-right: 1px solid var(--border);
-  box-shadow: 5px 0 20px rgb(0 0 0 / 12%);
+  box-shadow: 5px 0 20px rgb(0 0 0 / 30%);
 
   transform: translateX(calc(-100% - var(--sidebar-width)));
   visibility: hidden;
@@ -244,7 +239,6 @@
   padding: 20px;
 }
 
-/* Explore panel */
 .exploreContent {
   display: flex;
   flex-direction: column;
@@ -279,13 +273,13 @@
 
 .exploreFilter:hover {
   background: var(--surface-muted);
-  border-color: #b8c0cc;
+  border-color: #687487;
 }
 
 .exploreFilter.active {
-  color: var(--accent);
-  background: #edf2ff;
-  border-color: #c9d7ff;
+  color: #a9c4ff;
+  background: #263754;
+  border-color: #38527e;
   font-weight: 600;
 }
 
@@ -322,8 +316,8 @@
 }
 
 .exploreLocationCard:hover {
-  background: #fafbfc;
-  border-color: #c5ccd6;
+  background: var(--surface-muted);
+  border-color: #687487;
 }
 
 .exploreLocationImage {
@@ -332,7 +326,7 @@
   width: 88px;
   height: 88px;
   object-fit: cover;
-  background: #e8edf2;
+  background: #343a43;
   border-radius: 3px;
 }
 
@@ -340,7 +334,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #7a8594;
+  color: var(--muted);
 }
 
 .exploreLocationDetails {
@@ -386,9 +380,9 @@
 
 .exploreError {
   padding: 10px;
-  color: #a12626;
-  background: #fff3f3;
-  border: 1px solid #f0cccc;
+  color: #ffb4b4;
+  background: #492b30;
+  border: 1px solid #75434a;
   border-radius: 4px;
 }
 
@@ -416,7 +410,6 @@
   line-height: 1.6;
 }
 
-/* Placeholder panels for features not wired to the API yet. */
 .panelPlaceholder {
   min-height: 240px;
   display: flex;
@@ -444,7 +437,7 @@
   display: inline-block;
   margin-top: 4px;
   padding: 9px 12px;
-  color: var(--accent);
+  color: #a9c4ff;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -456,7 +449,6 @@
   background: var(--surface-muted);
 }
 
-/* Close button sits at the right edge of the open panel. */
 .sidebarCloseButton {
   position: absolute;
   top: 12px;
@@ -472,7 +464,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 4px;
-  box-shadow: 3px 2px 8px rgb(0 0 0 / 10%);
+  box-shadow: 3px 2px 8px rgb(0 0 0 / 30%);
   cursor: pointer;
   transition:
     background-color 150ms ease,
@@ -490,7 +482,7 @@
   margin: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
-  color: var(--muted);
+  color: var(--text);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -589,7 +581,6 @@ a:focus-visible {
   }
 }
 
-
 /* Explore: full-width social post cards */
 .exploreLocationList {
   display: flex;
@@ -658,17 +649,16 @@ a:focus-visible {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   border-radius: 0;
-  background: #f0f1f3;
+  background: #343a43;
   cursor: pointer;
 }
 
 .explorePostImage {
   display: block;
   width: 100%;
-  /* Same full-width image, 25% taller than the previous 4:3 frame. */
   aspect-ratio: 16 / 15;
   object-fit: contain;
-  background: #f0f1f3;
+  background: #343a43;
 }
 
 .explorePostImagePlaceholder {
@@ -764,7 +754,7 @@ a:focus-visible {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgb(15 20 30 / 45%);
+  background: rgb(15 20 30 / 65%);
 }
 
 .commentsDialog {
@@ -777,7 +767,8 @@ a:focus-visible {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 4px;
-  box-shadow: 0 12px 36px rgb(0 0 0 / 18%);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 35%);
+  color: var(--text);
 }
 
 .commentsDialogHeader {
@@ -849,7 +840,7 @@ a:focus-visible {
 .commentsError {
   margin: 0;
   padding: 8px 16px;
-  color: #a12626;
+  color: #ffb4b4;
   font-size: 12px;
 }
 
@@ -870,9 +861,13 @@ a:focus-visible {
   padding: 10px;
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--surface-muted);
   color: var(--text);
   font-size: 13px;
+}
+
+.commentForm textarea::placeholder {
+  color: var(--muted);
 }
 
 .commentSubmitButton {
@@ -898,7 +893,7 @@ a:focus-visible {
 }
 
 .commentsLoginPrompt a {
-  color: var(--accent);
+  color: #a9c4ff;
 }
 
 @media (max-width: 600px) {
@@ -919,7 +914,6 @@ a:focus-visible {
     max-height: 85%;
   }
 }
-
 
 /* Comment options menu */
 .commentItem {
@@ -966,9 +960,10 @@ a:focus-visible {
   min-width: 190px;
   padding: 5px;
   background: var(--surface);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 4px;
-  box-shadow: 0 6px 18px rgb(0 0 0 / 14%);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 30%);
 }
 
 .commentDeleteButton {
@@ -980,14 +975,14 @@ a:focus-visible {
   border: 0;
   border-radius: 3px;
   background: transparent;
-  color: #b42318;
+  color: #ff9999;
   font-size: 13px;
   text-align: left;
   cursor: pointer;
 }
 
 .commentDeleteButton:hover {
-  background: #fff1f0;
+  background: #492b30;
 }
 
 .commentDeleteButton:disabled {
@@ -1003,8 +998,7 @@ a:focus-visible {
   line-height: 1.4;
 }
 
-
-/* Explore full-bleed layout: cards and photos reach both panel edges. */
+/* Explore full-bleed layout */
 .sidebarPanelBody.explorePanelBody {
   padding: 0;
 }
@@ -1027,7 +1021,7 @@ a:focus-visible {
 
 .sidebarPanelBody.explorePanelBody .exploreLocationList {
   width: 100%;
-  gap: 0px;
+  gap: 0;
   margin: 0;
 }
 
@@ -1070,8 +1064,7 @@ a:focus-visible {
   }
 }
 
-
-/* Profile and Bookmarks reuse the exact full-width Explore post layout. */
+/* Profile and Bookmarks reuse the full-width Explore post layout */
 .sidebarPanelBody.socialPostPanelBody {
   padding: 0;
 }
@@ -1148,8 +1141,7 @@ a:focus-visible {
   }
 }
 
-
-/* A map pin opens one location using the same post layout as Explore. */
+/* A map pin opens one location using the same post layout as Explore */
 .sidebarPanelBody.socialPostPanelBody .selectedLocationContent {
   display: flex;
   flex-direction: column;
