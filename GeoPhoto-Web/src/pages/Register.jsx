@@ -9,6 +9,9 @@ function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [message, setMessage] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -34,7 +37,13 @@ function Register() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+          username,
+          firstName,
+          lastName,
+        }),
       });
 
       const responseData = await res.json().catch(() => ({}));
@@ -121,6 +130,45 @@ function Register() {
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
           />
+
+          <label htmlFor="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            autoComplete="username"
+            required
+            placeholder="Choose a username"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+          />
+
+          <div className="register-name-row">
+            <div className="register-name-field">
+              <label htmlFor="first-name">First Name</label>
+              <input
+                type="text"
+                id="first-name"
+                autoComplete="given-name"
+                required
+                placeholder="First name"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+              />
+            </div>
+
+            <div className="register-name-field">
+              <label htmlFor="last-name">Last Name</label>
+              <input
+                type="text"
+                id="last-name"
+                autoComplete="family-name"
+                required
+                placeholder="Last name"
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+              />
+            </div>
+          </div>
 
           <button type="submit" disabled={submitting}>
             {submitting ? "Creating Account..." : "Register"}

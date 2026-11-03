@@ -69,14 +69,6 @@ export default function RootLayout() {
               name="settings/account"
               options={{ headerShown: false }}
             />
-
-            <Stack.Screen
-              name="modal"
-              options={{
-                presentation: 'modal',
-                title: 'Modal',
-              }}
-            />
           </Stack>
 
           <StatusBar style="auto" />
