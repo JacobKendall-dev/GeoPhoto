@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MapAppApi.Services;
 
 namespace MapAppApi.Controllers
 {
@@ -6,11 +7,12 @@ namespace MapAppApi.Controllers
     [Route("images")]
     public class ImagesController : ControllerBase
     {
-        private readonly IWebHostEnvironment _env;
+        private readonly CloudinaryService _cloudinaryService;
 
-        public ImagesController(IWebHostEnvironment env)
+        public ImagesController(
+            CloudinaryService cloudinaryService)
         {
-            _env = env;
+            _cloudinaryService = cloudinaryService;
         }
 
         [HttpPost("location")]
@@ -36,15 +38,13 @@ namespace MapAppApi.Controllers
                 return BadRequest("No file uploaded");
             }
 
-            long size = image.Length;
-
-            if (size > 10 * 1024 * 1024)
+            if (image.Length > 10 * 1024 * 1024)
             {
                 return BadRequest(
                     "Maximum size of a file is 10 MB");
             }
 
-            List<string> validExtensions = new List<string>()
+            List<string> validExtensions = new()
             {
                 ".jpg",
                 ".jpeg",
@@ -53,7 +53,7 @@ namespace MapAppApi.Controllers
             };
 
             string extension =
-                Path.GetExtension(image.FileName).ToLower();
+                Path.GetExtension(image.FileName).ToLowerInvariant();
 
             if (!validExtensions.Contains(extension))
             {
@@ -62,37 +62,27 @@ namespace MapAppApi.Controllers
                     $"{string.Join(',', validExtensions)}");
             }
 
-            string path = Path.Combine(
-                _env.WebRootPath,
-                "images",
-                folder);
-
-            if (!Directory.Exists(path))
+            try
             {
-                Directory.CreateDirectory(path);
+                using var stream = image.OpenReadStream();
+
+                var result = await _cloudinaryService.UploadImageAsync(
+                    stream,
+                    image.FileName,
+                    folder
+                );
+
+                return Ok(new
+                {
+                    imageUrl = result.ImageUrl
+                });
             }
-
-            string fileName =
-                Guid.NewGuid().ToString() + extension;
-
-            string filePath =
-                Path.Combine(path, fileName);
-
-            using FileStream stream =
-                new FileStream(
-                    filePath,
-                    FileMode.Create);
-
-            await image.CopyToAsync(stream);
-
-            var url =
-                $"{Request.Scheme}://{Request.Host}" +
-                $"/images/{folder}/{fileName}";
-
-            return Ok(new
+            catch (Exception)
             {
-                imageUrl = url
-            });
+                return StatusCode(
+                    500,
+                    "Image upload failed.");
+            }
         }
     }
 }

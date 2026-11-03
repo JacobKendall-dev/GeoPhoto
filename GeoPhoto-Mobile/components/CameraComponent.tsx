@@ -56,7 +56,7 @@ export default function CameraComponent({
       } as any);
 
       const response = await fetch(
-        "http://192.168.1.174:5198/images/location",
+        "https://geophoto-production-581e.up.railway.app/images/location",
         {
           method: "POST",
           body: formData,

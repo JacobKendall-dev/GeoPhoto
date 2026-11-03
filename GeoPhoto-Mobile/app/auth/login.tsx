@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import { useAuth } from "../../context/AuthContext";
 
+const API_URL = "https://geophoto-production-581e.up.railway.app";
 
 export default function Login() {
     const [email, setEmail] = useState("");
@@ -15,7 +16,7 @@ export default function Login() {
 
     const handleSubmit = async () => {
 
-        const res = await fetch("http://192.168.1.174:5198/login", {
+        const res = await fetch(`${API_URL}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

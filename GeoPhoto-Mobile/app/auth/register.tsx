@@ -6,6 +6,8 @@ import * as SecureStore from "expo-secure-store";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 
+const API_URL = "https://geophoto-production-581e.up.railway.app";
+
 export default function Register() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -26,7 +28,7 @@ const handleSubmit = async () => {
         setPasswordError("");
 
         const registerRes = await fetch(
-            "http://192.168.1.174:5198/register",
+            `${API_URL}/register`,
             {
                 method: "POST",
                 headers: {
@@ -47,7 +49,7 @@ const handleSubmit = async () => {
         if (registerRes.ok) {
 
             const loginRes = await fetch(
-                "http://192.168.1.174:5198/login",
+                `${API_URL}/login`,
                 {
                     method: "POST",
                     headers: {

@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using MapAppApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,6 +45,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors();
 
 builder.Services.AddControllers();
+builder.Services.AddSingleton<CloudinaryService>();
 
 var app = builder.Build();
 

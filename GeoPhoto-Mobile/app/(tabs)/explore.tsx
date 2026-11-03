@@ -33,7 +33,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "../../context/AuthContext";
 
-const API_URL = "http://192.168.1.174:5198";
+const API_URL = "https://geophoto-production-581e.up.railway.app";
 
 type Location = {
   id: number;

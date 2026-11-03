@@ -24,7 +24,7 @@ Mapbox.setAccessToken(
   "pk.eyJ1IjoiZ2F3YWluNDA0IiwiYSI6ImNtdXFsdzVscjAydHUyd3BxbWV5ZWY5dTMifQ.vgJEszjTHerdTWzqNJ5D_A"
 );
 
-const API_URL = "http://192.168.1.174:5198";
+const API_URL = "https://geophoto-production-581e.up.railway.app";
 
 type MapLocation = {
   id: number;

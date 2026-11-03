@@ -35,7 +35,7 @@ import BottomSheet, {
   BottomSheetTextInput,
 } from "@gorhom/bottom-sheet";
 
-const API_URL = "http://192.168.1.174:5198";
+const API_URL = "https://geophoto-production-581e.up.railway.app";
 
 type Location = {
   id: number;
