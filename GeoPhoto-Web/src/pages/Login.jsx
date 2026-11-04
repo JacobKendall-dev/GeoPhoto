@@ -74,6 +74,10 @@ function Login() {
             required
           />
 
+          <p className="forgot-password-link">
+            <Link to="/forgot-password">Forgot your password?</Link>
+          </p>
+
           <button type="submit" disabled={submitting}>
             {submitting ? "Logging In..." : "Log In"}
           </button>

@@ -4,6 +4,8 @@ import PublicOnly from "./components/PublicOnly";
 import ConfirmEmail from "./pages/ConfirmEmail";
 import ResendConfirmation from "./pages/ResendConfirmation";
 import RecoverRegistration from "./pages/RecoverRegistration";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -25,6 +27,8 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/resend-confirmation" element={<ResendConfirmation />} />
         <Route path="/recover-registration" element={<RecoverRegistration />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Route>
 
       {/* Only accessible while logged in */}

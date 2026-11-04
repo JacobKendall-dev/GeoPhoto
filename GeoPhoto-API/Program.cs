@@ -334,6 +334,100 @@ app.MapPost("/recover-registration", async (
     return Results.Ok(new { message = genericMessage });
 });
 
+app.MapPost("/forgot-password", async (
+    ForgotPasswordRequest request,
+    UserManager<ApplicationUser> userManager,
+    EmailService emailService,
+    ILogger<Program> logger) =>
+{
+    const string genericMessage =
+        "If an account exists for that email address, a password reset link will be sent.";
+
+    var user = await userManager.FindByEmailAsync(request.Email.Trim());
+
+    // Don't reveal whether the account exists.
+    if (user == null)
+    {
+        return Results.Ok(new { message = genericMessage });
+    }
+
+    try
+    {
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+        var resetLink =
+            $"https://trygeophoto.com/reset-password" +
+            $"?userId={Uri.EscapeDataString(user.Id)}" +
+            $"&token={Uri.EscapeDataString(token)}";
+
+        var safeLink =
+            System.Net.WebUtility.HtmlEncode(resetLink);
+
+        await emailService.SendEmailAsync(
+            user.Email!,
+            "Reset your GeoPhoto password",
+            $"""
+            <h2>Password Reset Request</h2>
+            <p>We received a request to reset your GeoPhoto password.</p>
+            <p>Click the link below to choose a new password:</p>
+            <p><a href="{safeLink}">Reset Password</a></p>
+            <p>If you did not request this, you can ignore this email.</p>
+            """,
+            $"""
+            We received a request to reset your GeoPhoto password.
+
+            Reset your password by visiting:
+
+            {resetLink}
+
+            If you did not request this, you can ignore this email.
+            """
+        );
+    }
+    catch (Exception exception)
+    {
+        logger.LogError(
+            exception,
+            "Failed to send a password reset email."
+        );
+    }
+
+    return Results.Ok(new { message = genericMessage });
+});
+
+app.MapPost("/reset-password", async (
+    ResetPasswordRequest request,
+    UserManager<ApplicationUser> userManager) =>
+{
+    var user = await userManager.FindByIdAsync(request.UserId);
+
+    if (user == null)
+    {
+        return Results.BadRequest(new
+        {
+            message = "This password reset link is invalid or has expired."
+        });
+    }
+
+    var result = await userManager.ResetPasswordAsync(
+        user,
+        request.Token,
+        request.NewPassword);
+
+    if (!result.Succeeded)
+    {
+        return Results.BadRequest(new
+        {
+            message = "Unable to reset your password. The link may be invalid or expired, or the new password may not meet the requirements."
+        });
+    }
+
+    return Results.Ok(new
+    {
+        message = "Your password has been reset successfully. You can now log in."
+    });
+});
+
 app.MapPost("/login", async (
     LoginRequest request,
     UserManager<ApplicationUser> userManager) =>
