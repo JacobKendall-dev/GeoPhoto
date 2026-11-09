@@ -99,9 +99,13 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 
 app.UseCors(policy =>
-    policy.AllowAnyOrigin()
-          .AllowAnyHeader()
-          .AllowAnyMethod());
+    policy.WithOrigins(
+        "https://trygeophoto.com",
+        "https://www.trygeophoto.com",
+        "http://localhost:5173"
+    )
+    .AllowAnyHeader()
+    .AllowAnyMethod());
 
 app.UseRateLimiter();
 
