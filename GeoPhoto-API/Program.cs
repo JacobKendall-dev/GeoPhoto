@@ -10,8 +10,32 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using MapAppApi.Services;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+static RateLimitPartition<string> CreateIpRateLimit(
+    HttpContext context,
+    int permitLimit,
+    TimeSpan window)
+{
+    var clientIp =
+        context.Request.Headers["X-Real-IP"].FirstOrDefault()
+        ?? context.Connection.RemoteIpAddress?.ToString()
+        ?? "unknown";
+
+    return RateLimitPartition.GetFixedWindowLimiter(
+        clientIp,
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = permitLimit,
+            Window = window,
+            QueueLimit = 0,
+            AutoReplenishment = true
+        });
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -50,15 +74,39 @@ builder.Services.AddControllers();
 builder.Services.AddSingleton<CloudinaryService>();
 builder.Services.AddHttpClient<EmailService>();
 
-var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode =
+        StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("login", context =>
+        CreateIpRateLimit(context, 5, TimeSpan.FromMinutes(1)));
+
+    options.AddPolicy("register", context =>
+        CreateIpRateLimit(context, 3, TimeSpan.FromHours(1)));
+
+    options.AddPolicy("confirmation", context =>
+        CreateIpRateLimit(context, 3, TimeSpan.FromHours(1)));
+
+    options.AddPolicy("recovery", context =>
+        CreateIpRateLimit(context, 5, TimeSpan.FromMinutes(15)));
+
+    options.AddPolicy("password-reset", context =>
+        CreateIpRateLimit(context, 5, TimeSpan.FromMinutes(15)));
+});
+
+var app = builder.Build();
 
 app.UseCors(policy =>
     policy.AllowAnyOrigin()
           .AllowAnyHeader()
           .AllowAnyMethod());
+
+app.UseRateLimiter();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseStaticFiles();
 app.MapControllers();
@@ -130,7 +178,8 @@ app.MapPost("/register", async (
     {
         message = "Account created! Please check your email to confirm your account."
     });
-});
+})
+.RequireRateLimiting("register");
 
 app.MapGet("/confirm-email", async (
     string userId,
@@ -229,7 +278,8 @@ app.MapPost("/resend-confirmation", async (
     }
 
     return Results.Ok(new { message = genericMessage });
-});
+})
+.RequireRateLimiting("resend-confirmation");
 
 app.MapPost("/recover-registration", async (
     RecoverRegistrationRequest request,
@@ -332,7 +382,8 @@ app.MapPost("/recover-registration", async (
     }
 
     return Results.Ok(new { message = genericMessage });
-});
+})
+.RequireRateLimiting("recover-registration");
 
 app.MapPost("/forgot-password", async (
     ForgotPasswordRequest request,
@@ -393,7 +444,8 @@ app.MapPost("/forgot-password", async (
     }
 
     return Results.Ok(new { message = genericMessage });
-});
+})
+.RequireRateLimiting("forgot-password");
 
 app.MapPost("/reset-password", async (
     ResetPasswordRequest request,
@@ -426,7 +478,8 @@ app.MapPost("/reset-password", async (
     {
         message = "Your password has been reset successfully. You can now log in."
     });
-});
+})
+.RequireRateLimiting("reset-password");
 
 app.MapPost("/login", async (
     LoginRequest request,
@@ -495,7 +548,8 @@ app.MapPost("/login", async (
     {
         token = tokenString
     });
-});
+})
+.RequireRateLimiting("login");
 
 
 app.MapGet("/locations", async (
