@@ -21,7 +21,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 Mapbox.setAccessToken(
-  "pk.eyJ1IjoiZ2F3YWluNDA0IiwiYSI6ImNtdXFsdzVscjAydHUyd3BxbWV5ZWY5dTMifQ.vgJEszjTHerdTWzqNJ5D_A"
+  "pk.eyJ1IjoiZ2F3YWluNDA0IiwiYSI6ImNtdzltbjV6bzAwZWIyeG9rd3h3bmRqN20ifQ.qu6I4sIfsLbsO56JXERf9Q"
 );
 
 const API_URL = "https://geophoto-production-581e.up.railway.app";

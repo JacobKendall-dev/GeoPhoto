@@ -1,0 +1,69 @@
+.privacy-effective-date {
+  color: #bdbdbd;
+  font-size: 13px;
+  margin-top: 18px;
+}
+
+.privacy-section {
+  background: white;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+}
+
+.privacy-section h2 {
+  font-size: 20px;
+  margin: 0 0 16px;
+  color: #222;
+}
+
+.privacy-section p,
+.privacy-section li {
+  color: #555;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.privacy-section p {
+  margin: 0 0 14px;
+}
+
+.privacy-section p:last-child {
+  margin-bottom: 0;
+}
+
+.privacy-section ul {
+  padding-left: 22px;
+  margin: 12px 0 18px;
+}
+
+.privacy-section li {
+  margin-bottom: 9px;
+}
+
+.privacy-section strong {
+  color: #333;
+}
+
+.privacy-section a {
+  color: #245da8;
+  text-decoration: none;
+}
+
+.privacy-section a:hover {
+  text-decoration: underline;
+}
+
+.privacy-contact {
+  margin-top: 18px !important;
+}
+
+@media (max-width: 600px) {
+  .privacy-section {
+    padding: 23px 20px;
+  }
+
+  .privacy-section h2 {
+    font-size: 18px;
+  }
+}

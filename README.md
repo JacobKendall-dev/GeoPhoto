@@ -307,6 +307,17 @@ The goal has been to build one cohesive application rather than three disconnect
 
 ---
 
+## Privacy & Design Decisions
+
+GeoPhoto is designed as a public, map-based photo-sharing application. Its primary purpose is to let users discover photographs associated with real-world locations.
+
+- Location posts, including their photos, descriptions, and geographic coordinates, are publicly viewable.
+- Visitors can explore the map and browse posts without creating an account.
+- An account is required for interactive features such as liking, bookmarking, and commenting.
+- Users should only upload photographs and location information they are comfortable sharing publicly.
+
+**Privacy consideration:** GeoPhoto is intended for public sharing, not private photo storage. Users should avoid uploading content that reveals sensitive personal information or private locations.
+
 ## 🔮 Future Improvements
 
 Some areas I'd like to continue improving include:

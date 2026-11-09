@@ -729,6 +729,7 @@ export default function App() {
             </>
           ) : (
             <>
+
               <Link to="/register">Register</Link>
               <Link to="/login">Login</Link>
             </>
@@ -1040,7 +1041,17 @@ export default function App() {
       </main>
 
       <footer className="siteFooter">
-        <p>Creator email: <strong>jacob.jkendall@gmail.com</strong></p>
+        <p>
+          Creator:{" "}
+          <a href="mailto:jacob.jkendall@gmail.com">
+            jacob.jkendall@gmail.com
+          </a>
+        </p>
+
+        <nav className="footerLinks">
+          <Link to="/about">About</Link>
+          <Link to="/privacy">Privacy Policy</Link>
+        </nav>
       </footer>
     </div>
   );

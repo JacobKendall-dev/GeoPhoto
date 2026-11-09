@@ -6,6 +6,8 @@ import ResendConfirmation from "./pages/ResendConfirmation";
 import RecoverRegistration from "./pages/RecoverRegistration";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import About from "./pages/About";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -20,6 +22,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/confirm-email" element={<ConfirmEmail />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
       
       {/* Only accessible while logged out */}
       <Route element={<PublicOnly />}>
