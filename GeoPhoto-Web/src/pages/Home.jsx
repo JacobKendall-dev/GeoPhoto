@@ -146,7 +146,7 @@ export default function App() {
 
   useEffect(() => {
     mapboxgl.accessToken =
-      "pk.eyJ1IjoiZ2F3YWluNDA0IiwiYSI6ImNtdXFsdzVscjAydHUyd3BxbWV5ZWY5dTMifQ.vgJEszjTHerdTWzqNJ5D_A";
+      "pk.eyJ1IjoiZ2F3YWluNDA0IiwiYSI6ImNtdzltZmNqZjAybHMyeG91aHF3M3J3aTQifQ.N7RACkT6_B4g7c1o6gYn-Q";
 
     const map = new mapboxgl.Map({
       container: mapContainer.current,
