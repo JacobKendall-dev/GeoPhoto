@@ -89,7 +89,7 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("confirmation", context =>
         CreateIpRateLimit(context, 3, TimeSpan.FromHours(1)));
 
-    options.AddPolicy("recovery", context =>
+    options.AddPolicy("recover-registration", context =>
         CreateIpRateLimit(context, 5, TimeSpan.FromMinutes(15)));
 
     options.AddPolicy("password-reset", context =>
@@ -97,6 +97,8 @@ builder.Services.AddRateLimiter(options =>
 });
 
 var app = builder.Build();
+
+app.UseHttpsRedirection();
 
 app.UseCors(policy =>
     policy.WithOrigins(
