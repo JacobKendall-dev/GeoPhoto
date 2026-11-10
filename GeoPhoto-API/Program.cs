@@ -86,13 +86,13 @@ builder.Services.AddRateLimiter(options =>
     options.AddPolicy("register", context =>
         CreateIpRateLimit(context, 3, TimeSpan.FromHours(1)));
 
-    options.AddPolicy("confirmation", context =>
+    options.AddPolicy("resend-confirmation", context =>
         CreateIpRateLimit(context, 3, TimeSpan.FromHours(1)));
 
     options.AddPolicy("recover-registration", context =>
         CreateIpRateLimit(context, 5, TimeSpan.FromMinutes(15)));
 
-    options.AddPolicy("password-reset", context =>
+    options.AddPolicy("reset-password", context =>
         CreateIpRateLimit(context, 5, TimeSpan.FromMinutes(15)));
 });
 
@@ -287,20 +287,35 @@ app.MapPost("/resend-confirmation", async (
 })
 .RequireRateLimiting("resend-confirmation");
 
+
 app.MapPost("/recover-registration", async (
     RecoverRegistrationRequest request,
     UserManager<ApplicationUser> userManager,
-    EmailService emailService) =>
+    EmailService emailService,
+    ILogger<Program> logger) =>
 {
     var genericMessage =
         "If the account can be recovered, a confirmation email will be sent to the new address.";
 
+    logger.LogInformation("Recovery: Request received.");
+
     var account = await userManager.FindByNameAsync(
         request.Username.Trim());
 
-    // Only allow recovery of accounts that haven't been verified.
-    if (account == null || account.EmailConfirmed)
+    if (account == null)
     {
+        logger.LogWarning("Recovery: Username was not found.");
+
+        return Results.Ok(new { message = genericMessage });
+    }
+
+    logger.LogInformation("Recovery: Account lookup succeeded.");
+
+    // Only allow recovery of accounts that haven't been verified.
+    if (account.EmailConfirmed)
+    {
+        logger.LogWarning("Recovery: Account is already email-confirmed.");
+
         return Results.Ok(new { message = genericMessage });
     }
 
@@ -310,8 +325,12 @@ app.MapPost("/recover-registration", async (
 
     if (!passwordValid)
     {
+        logger.LogWarning("Recovery: Password validation failed.");
+
         return Results.Ok(new { message = genericMessage });
     }
+
+    logger.LogInformation("Recovery: Password validation succeeded.");
 
     var newEmail = request.NewEmail.Trim();
 
@@ -319,6 +338,8 @@ app.MapPost("/recover-registration", async (
 
     if (existingEmail != null && existingEmail.Id != account.Id)
     {
+        logger.LogWarning("Recovery: New email is already in use.");
+
         return Results.BadRequest(new
         {
             message = "That email address is already associated with another account."
@@ -331,8 +352,12 @@ app.MapPost("/recover-registration", async (
 
     if (!emailResult.Succeeded)
     {
+        logger.LogError("Recovery: Updating the account email failed.");
+
         return Results.BadRequest(emailResult.Errors);
     }
+
+    logger.LogInformation("Recovery: Account email updated.");
 
     account.EmailConfirmed = false;
 
@@ -341,6 +366,8 @@ app.MapPost("/recover-registration", async (
 
     if (!stampResult.Succeeded)
     {
+        logger.LogError("Recovery: Updating the security stamp failed.");
+
         return Results.BadRequest(stampResult.Errors);
     }
 
@@ -377,9 +404,16 @@ app.MapPost("/recover-registration", async (
             If you did not request this change, you can ignore this email.
             """
         );
+
+        logger.LogInformation(
+            "Recovery: Resend accepted the confirmation email request.");
     }
-    catch (Exception)
+    catch (Exception exception)
     {
+        logger.LogError(
+            exception,
+            "Recovery: Failed to send the confirmation email through Resend.");
+
         return Results.Problem(
             title: "Email updated, but confirmation email could not be sent.",
             detail: "Your account is saved with the new email address. Please try requesting another confirmation email.",
@@ -387,9 +421,12 @@ app.MapPost("/recover-registration", async (
         );
     }
 
+    logger.LogInformation("Recovery: Request completed successfully.");
+
     return Results.Ok(new { message = genericMessage });
 })
-.RequireRateLimiting("recover-registration");
+.RequireRateLimiting("recovery");
+
 
 app.MapPost("/forgot-password", async (
     ForgotPasswordRequest request,
