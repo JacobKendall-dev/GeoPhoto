@@ -22,9 +22,14 @@ function AuthNavigation() {
       return;
     }
 
-    const inAuthScreen =
-      segments[segments.length - 1] === 'login' ||
-      segments[segments.length - 1] === 'register';
+  const inAuthScreen = [
+    "login",
+    "register",
+    "forgot-password",
+    "reset-password",
+    "resend-confirmation",
+    "recover-registration",
+  ].includes(segments[segments.length - 1] as string);
 
     if (!isLoggedIn && !inAuthScreen) {
       router.replace('../auth/login');
@@ -54,7 +59,7 @@ export default function RootLayout() {
 
           <AuthNavigation />
 
-          <Stack>
+          <Stack screenOptions={{headerShown: false}}>
             <Stack.Screen
               name="(tabs)"
               options={{ headerShown: false }}

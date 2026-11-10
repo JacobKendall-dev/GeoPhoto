@@ -94,6 +94,8 @@ builder.Services.AddRateLimiter(options =>
 
     options.AddPolicy("reset-password", context =>
         CreateIpRateLimit(context, 5, TimeSpan.FromMinutes(15)));
+    options.AddPolicy("forgot-password", context =>
+    CreateIpRateLimit(context, 5, TimeSpan.FromMinutes(15)));
 });
 
 var app = builder.Build();
