@@ -425,7 +425,7 @@ app.MapPost("/recover-registration", async (
 
     return Results.Ok(new { message = genericMessage });
 })
-.RequireRateLimiting("recovery");
+.RequireRateLimiting("recover-registration");
 
 
 app.MapPost("/forgot-password", async (
