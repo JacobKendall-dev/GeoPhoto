@@ -1,3 +1,4 @@
+
 import {
   Linking,
   Pressable,
@@ -57,7 +58,7 @@ export default function PrivacyPolicy() {
           contentContainerStyle={styles.content}
         >
           <ThemedText style={styles.effectiveDate}>
-            Effective date: November 9, 2026
+            Effective date: November 10, 2026
           </ThemedText>
 
           {/* 1. Introduction */}
@@ -68,8 +69,8 @@ export default function PrivacyPolicy() {
           <ThemedText style={styles.paragraph}>
             GeoPhoto is a location-based photo-sharing application.
             This Privacy Policy explains what information may be
-            collected when you use GeoPhoto and how that information
-            is used.
+            collected when you use GeoPhoto, how that information
+            is used, and how it may be shared.
           </ThemedText>
 
           <ThemedText style={styles.paragraph}>
@@ -85,13 +86,19 @@ export default function PrivacyPolicy() {
 
           <ThemedText style={styles.paragraph}>
             Depending on how you use GeoPhoto, the application
-            may collect:
+            may collect or process the following information:
           </ThemedText>
 
           <View style={styles.list}>
             <ThemedText style={styles.listItem}>
               • Account information: Email address, username,
-              first name, last name, and password credentials.
+              first name, and last name.
+            </ThemedText>
+
+            <ThemedText style={styles.listItem}>
+              • Password credentials: Passwords are processed
+              through ASP.NET Core Identity and stored as
+              securely hashed credentials rather than plain text.
             </ThemedText>
 
             <ThemedText style={styles.listItem}>
@@ -106,13 +113,20 @@ export default function PrivacyPolicy() {
             </ThemedText>
 
             <ThemedText style={styles.listItem}>
+              • Location information: Geographic coordinates
+              accessed through your device when you use features
+              that require your location, such as creating
+              location posts or exploring nearby locations.
+            </ThemedText>
+
+            <ThemedText style={styles.listItem}>
               • Interactions: Likes, bookmarks, and comments
               associated with location posts.
             </ThemedText>
 
             <ThemedText style={styles.listItem}>
-              • Authentication information: Information needed
-              to authenticate your account and maintain your
+              • Authentication information: Authentication
+              tokens and information needed to maintain your
               signed-in session.
             </ThemedText>
           </View>
@@ -129,12 +143,12 @@ export default function PrivacyPolicy() {
           </ThemedText>
 
           <ThemedText style={styles.paragraph}>
-            Public location posts include:
+            Public location posts may include:
           </ThemedText>
 
           <View style={styles.list}>
             <ThemedText style={styles.listItem}>
-              • Uploaded photographs and their image URLs.
+              • Uploaded photographs and their associated image URLs.
             </ThemedText>
 
             <ThemedText style={styles.listItem}>
@@ -156,15 +170,17 @@ export default function PrivacyPolicy() {
           </View>
 
           <ThemedText style={styles.paragraph}>
-            Comments are also publicly viewable. Bookmarks are
-            associated with your account and are not included
-            in the public location listing.
+            Comments are publicly viewable and may be associated
+            with your username and profile information.
+            Bookmarks are associated with your account and are
+            not included in public location listings.
           </ThemedText>
 
           <ThemedText style={styles.paragraph}>
-            Do not upload photographs or location information
-            that you do not want publicly accessible. Avoid
-            sharing sensitive locations, personal information,
+            Location information may reveal where a photograph
+            was taken. Do not upload photographs or location
+            information that you do not want publicly accessible.
+            Avoid sharing sensitive locations, personal information,
             or images containing information you wish to keep private.
           </ThemedText>
 
@@ -191,6 +207,10 @@ export default function PrivacyPolicy() {
             </ThemedText>
 
             <ThemedText style={styles.listItem}>
+              • Provide location-based exploration and mapping features.
+            </ThemedText>
+
+            <ThemedText style={styles.listItem}>
               • Provide likes, bookmarks, and commenting features.
             </ThemedText>
 
@@ -199,7 +219,7 @@ export default function PrivacyPolicy() {
             </ThemedText>
 
             <ThemedText style={styles.listItem}>
-              • Maintain and improve the application's functionality.
+              • Maintain, secure, and improve the application's functionality.
             </ThemedText>
           </View>
 
@@ -220,6 +240,17 @@ export default function PrivacyPolicy() {
             </ThemedText>
             <ThemedText style={styles.paragraph}>
               Provides map rendering and mapping functionality.
+              Location and map-related information may be processed
+              as necessary to provide these services.
+            </ThemedText>
+            <ThemedText style={styles.paragraph}>
+              Mapbox's mobile SDK also collects and sends de-identified
+              location and usage telemetry by default to help improve its
+              mapping services. Users can opt out at any time through the
+              Mapbox attribution menu on the map by selecting "Mapbox
+              Telemetry" and choosing "Stop Participating." This telemetry
+              is separate from the precise GPS coordinates GeoPhoto
+              collects for location posts.
             </ThemedText>
             {renderExternalLink(
               "Mapbox Privacy Policy",
@@ -232,8 +263,8 @@ export default function PrivacyPolicy() {
               Cloudinary
             </ThemedText>
             <ThemedText style={styles.paragraph}>
-              Stores and delivers uploaded photographs and
-              profile pictures.
+              Stores and delivers uploaded location photographs
+              and profile pictures.
             </ThemedText>
             {renderExternalLink(
               "Cloudinary Privacy Policy",
@@ -260,7 +291,8 @@ export default function PrivacyPolicy() {
               Railway
             </ThemedText>
             <ThemedText style={styles.paragraph}>
-              Hosts the GeoPhoto backend API.
+              Hosts the GeoPhoto backend API and processes
+              application requests.
             </ThemedText>
             {renderExternalLink(
               "Railway Privacy Information",
@@ -274,7 +306,7 @@ export default function PrivacyPolicy() {
             </ThemedText>
             <ThemedText style={styles.paragraph}>
               Provides PostgreSQL database hosting for
-              application data.
+              application account and location data.
             </ThemedText>
             {renderExternalLink(
               "Neon Privacy Policy",
@@ -301,27 +333,56 @@ export default function PrivacyPolicy() {
 
           <ThemedText style={styles.paragraph}>
             Passwords are handled through ASP.NET Core Identity
-            rather than being stored as plain-text passwords.
-            However, no online service can guarantee absolute
-            security.
+            and stored as hashed credentials rather than
+            plain-text passwords. Authentication tokens are
+            used to maintain signed-in sessions.
           </ThemedText>
 
-          {/* 7. Data Retention */}
+          <ThemedText style={styles.paragraph}>
+            Although reasonable measures are used to protect
+            account information, no online service can guarantee
+            absolute security.
+          </ThemedText>
+
+          {/* 7. Data Retention and Account Deletion */}
           <ThemedText type="subtitle" style={styles.sectionTitle}>
-            7. Data Retention and Account Requests
+            7. Data Retention and Account Deletion
           </ThemedText>
 
           <ThemedText style={styles.paragraph}>
             Information is retained as needed to operate the
-            application and maintain its functionality.
+            application and provide its features.
           </ThemedText>
 
           <ThemedText style={styles.paragraph}>
-            GeoPhoto does not currently provide a self-service
-            account deletion feature. For questions about your
-            account or requests concerning your information,
-            contact the application developer using the contact
-            information below.
+            Users can permanently delete their accounts through
+            the Account Information section of the GeoPhoto
+            mobile application. Account deletion requires
+            confirmation using the account's current password.
+          </ThemedText>
+
+          <ThemedText style={styles.paragraph}>
+            When an account is deleted, GeoPhoto deletes the
+            associated account information, location posts,
+            uploaded location photographs, profile picture,
+            comments, likes, and bookmarks.
+          </ThemedText>
+
+          <ThemedText style={styles.paragraph}>
+            Uploaded photographs and profile pictures stored
+            through Cloudinary are also submitted for deletion.
+          </ThemedText>
+
+          <ThemedText style={styles.paragraph}>
+            Account deletion is permanent and cannot be reversed.
+            Once an account has been deleted, the user will no
+            longer be able to access it or its associated content.
+          </ThemedText>
+
+          <ThemedText style={styles.paragraph}>
+            For questions about account deletion or personal
+            information, contact the GeoPhoto developer using
+            the contact information below.
           </ThemedText>
 
           {/* 8. Children's Privacy */}
@@ -330,10 +391,11 @@ export default function PrivacyPolicy() {
           </ThemedText>
 
           <ThemedText style={styles.paragraph}>
-            GeoPhoto is not designed specifically for children.
-            Please do not use the application to share photographs
-            or personal information about children without
-            appropriate authorization.
+            GeoPhoto is not specifically designed for children.
+            We do not knowingly collect personal information
+            from children in violation of applicable privacy laws.
+            If you believe a child has provided personal information
+            through GeoPhoto, please contact the developer.
           </ThemedText>
 
           {/* 9. Changes */}
