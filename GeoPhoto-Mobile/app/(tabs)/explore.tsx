@@ -1,30 +1,13 @@
-import React, {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, {useCallback, useMemo, useRef, useState,} from "react";
 
-import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  FlatList,
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
+import {ActivityIndicator, Alert, Dimensions, FlatList, Image, Modal, Pressable, StyleSheet, View,
 } from "react-native";
 
 import { useTheme } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 
-import BottomSheet, {
-  BottomSheetFlatList,
-  BottomSheetTextInput,
-} from "@gorhom/bottom-sheet";
+import BottomSheet, {BottomSheetFlatList, BottomSheetTextInput} from "@gorhom/bottom-sheet";
 
 import { MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -33,8 +16,10 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useAuth } from "../../context/AuthContext";
 
+// Base URL used for API requests and resolving stored image paths.
 const API_URL = "https://geophoto-production-581e.up.railway.app";
 
+// Location data returned by the API.
 type Location = {
   id: number;
   latitude: number;
@@ -50,6 +35,7 @@ type Location = {
   bookmarkedByMe: boolean;
 };
 
+// Comment data returned by the API.
 type Comment = {
   id: number;
   text: string;
@@ -59,8 +45,10 @@ type Comment = {
   isMine: boolean;
 };
 
+// Available Explore feed filters.
 type Filter = "all" | "distance" | "liked";
 
+// Screen coordinates used to position the comment options menu.
 type CommentMenuPosition = {
   x: number;
   y: number;
@@ -69,14 +57,18 @@ type CommentMenuPosition = {
 };
 
 export default function Explore() {
+  // Authentication token, theme colors, and navigation.
   const { token } = useAuth();
   const { colors } = useTheme();
   const router = useRouter();
 
+  // Safe-area values are used to position the feed and bottom sheet.
   const insets = useSafeAreaInsets();
 
+  // All locations currently loaded into the Explore feed.
   const [locations, setLocations] = useState<Location[]>([]);
 
+  // Currently selected feed filter.
   const [selectedFilter, setSelectedFilter] =
     useState<Filter>("all");
 
@@ -99,60 +91,54 @@ export default function Explore() {
   const [distanceOrder, setDistanceOrder] =
     useState<number[]>([]);
 
+  // Loading states for the feed and distance filter.
   const [loading, setLoading] = useState(true);
 
-  const [distanceLoading, setDistanceLoading] =
-    useState(false);
+  const [distanceLoading, setDistanceLoading] = useState(false);
 
-  const [selectedLocation, setSelectedLocation] =
-    useState<Location | null>(null);
+  // Currently selected location and its comments.
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
   const [comments, setComments] = useState<Comment[]>([]);
 
-  const [commentsLoading, setCommentsLoading] =
-    useState(false);
+  const [commentsLoading, setCommentsLoading] = useState(false);
 
   const [commentText, setCommentText] = useState("");
 
-  const [sendingComment, setSendingComment] =
-    useState(false);
+  const [sendingComment, setSendingComment] = useState(false);
 
   /*
    * Stores which comment's three-dot menu
    * is currently open.
    */
-  const [commentMenuId, setCommentMenuId] =
-    useState<number | null>(null);
+  const [commentMenuId, setCommentMenuId] = useState<number | null>(null);
 
   /*
    * Stores the screen position of the
    * three-dot button that was pressed.
    */
-  const [commentMenuPosition, setCommentMenuPosition] =
-    useState<CommentMenuPosition | null>(null);
+  const [commentMenuPosition, setCommentMenuPosition] = useState<CommentMenuPosition | null>(null);
 
   /*
    * Stores references to each comment's
    * three-dot button so we can measure
    * its position on the screen.
    */
-  const commentButtonRefs =
-    useRef<Record<number, any>>({});
+  const commentButtonRefs = useRef<Record<number, any>>({});
 
-  const bottomSheetRef =
-    useRef<BottomSheet>(null);
+  // Reference used to open and close the comments bottom sheet.
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
   /*
    * Keep the comments sheet at 75% of the screen.
    */
-  const snapPoints = useMemo(
-    () => ["75%"],
-    []
-  );
+  const snapPoints = useMemo(() => ["75%"],[]);
 
   /*
    * Load locations
    */
+
+  // Fetch the public location feed, including the current user's interaction state.
   const fetchLocations = useCallback(async () => {
     try {
       setLoading(true);
@@ -189,6 +175,7 @@ export default function Explore() {
     }
   }, [token]);
 
+  // Load locations when the screen first opens or the token changes.
   React.useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
@@ -199,6 +186,8 @@ export default function Explore() {
    *
    * Returns distance in meters.
    */
+
+  // Haversine calculation used to compare the user's position with each location.
   const calculateDistance = (
     latitude1: number,
     longitude1: number,
@@ -235,6 +224,8 @@ export default function Explore() {
    * Get current device location and
    * establish Distance ordering.
    */
+
+  // Request device location and save locations sorted from nearest to farthest.
   const handleDistanceFilter = async () => {
     try {
       setDistanceLoading(true);
@@ -302,6 +293,8 @@ export default function Explore() {
   /*
    * Apply current filter
    */
+
+  // Rebuild the visible list using the saved order for the selected filter.
   const filteredLocations = useMemo(() => {
     if (selectedFilter === "liked") {
       const locationMap = new Map(
@@ -346,6 +339,8 @@ export default function Explore() {
   /*
    * Change filter
    */
+
+  // Change the feed filter and capture a fresh order when needed.
   const handleFilterChange = async (
     filter: Filter
   ) => {
@@ -375,6 +370,8 @@ export default function Explore() {
   /*
    * Go to location on map
    */
+
+  // Navigate to the map and pass the selected location ID.
   const handleGoToLocation = (
     location: Location
   ) => {
@@ -389,6 +386,8 @@ export default function Explore() {
   /*
    * Toggle like
    */
+
+  // Send the like or unlike request and update the feed card.
   const handleLike = async (
     location: Location
   ) => {
@@ -443,6 +442,8 @@ export default function Explore() {
   /*
    * Toggle bookmark
    */
+
+  // Send the bookmark or remove-bookmark request and update the feed card.
   const handleBookmark = async (
     location: Location
   ) => {
@@ -495,6 +496,8 @@ export default function Explore() {
   /*
    * Open comments
    */
+
+  // Open the comments sheet and fetch comments for the selected location.
   const openComments = async (
     location: Location
   ) => {
@@ -545,6 +548,8 @@ export default function Explore() {
    * Open the three-dot menu and measure
    * the button's position on the screen.
    */
+
+  // Measure the selected comment's options button for popup placement.
   const openCommentMenu = (
     commentId: number
   ) => {
@@ -577,6 +582,8 @@ export default function Explore() {
   /*
    * Close the three-dot menu.
    */
+
+  // Hide the comment options popup and clear its measured position.
   const closeCommentMenu = () => {
     setCommentMenuId(null);
     setCommentMenuPosition(null);
@@ -585,6 +592,8 @@ export default function Explore() {
   /*
    * Send comment
    */
+
+  // Submit a new comment, refresh the list, and update the card count.
   const handleSendComment = async () => {
     if (!token || !selectedLocation) {
       return;
@@ -673,6 +682,8 @@ export default function Explore() {
   /*
    * Delete comment
    */
+
+  // Delete a comment after the user confirms the action.
   const handleDeleteComment = (
     comment: Comment
   ) => {
@@ -782,6 +793,8 @@ export default function Explore() {
   /*
    * Format date
    */
+
+  // Convert an API timestamp into a readable date for posts and comments.
   const formatDate = (
     dateString: string
   ) => {
@@ -800,6 +813,8 @@ export default function Explore() {
   /*
    * Location card
    */
+
+  // Render a location post with its author, image, description, and actions.
   const renderLocation = ({
     item,
   }: {
@@ -1023,6 +1038,8 @@ export default function Explore() {
   /*
    * Comment item
    */
+
+  // Render a comment, its author image, date, and optional delete menu.
   const renderComment = ({
     item,
   }: {
@@ -1116,6 +1133,8 @@ export default function Explore() {
   /*
    * Main loading state
    */
+
+  // Show a loading indicator until the initial location request finishes.
   if (loading) {
     return (
       <ThemedView
@@ -1133,6 +1152,8 @@ export default function Explore() {
    * Calculate the position of the comment
    * menu inside the transparent modal.
    */
+
+  // Popup dimensions and screen bounds.
   const menuWidth = 130;
   const menuHeight = 48;
   const menuSpacing = 8;
@@ -1141,6 +1162,7 @@ export default function Explore() {
   const screenHeight =
     Dimensions.get("window").height;
 
+  // Calculate the comment menu's position while keeping it on-screen.
   let commentMenuStyle: {
     left: number;
     top: number;
@@ -1560,6 +1582,10 @@ export default function Explore() {
     </ThemedView>
   );
 }
+
+/*
+ * Explore screen styles
+ */
 
 const styles = StyleSheet.create({
   container: {

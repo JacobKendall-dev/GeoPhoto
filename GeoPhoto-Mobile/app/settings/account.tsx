@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,10 +22,9 @@ import { useAuth } from "@/context/AuthContext";
 
 const API_URL = "https://geophoto-production-581e.up.railway.app";
 
-
 export default function AccountInformation() {
   const { colors } = useTheme();
-  const { authenticatedRequest } = useAuth();
+  const { authenticatedRequest, logout } = useAuth();
 
   const [username, setUsername] = useState("");
   const [newUsername, setNewUsername] = useState("");
@@ -48,6 +48,7 @@ export default function AccountInformation() {
   const [savingName, setSavingName] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     loadAccount();
@@ -259,6 +260,113 @@ export default function AccountInformation() {
     );
   };
 
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to permanently delete your GeoPhoto account? This will remove your profile, locations, photos, comments, likes, and bookmarks. This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Continue",
+          style: "destructive",
+          onPress: requestDeleteConfirmation,
+        },
+      ]
+    );
+  };
+
+  const requestDeleteConfirmation = () => {
+    Alert.prompt(
+      "Confirm Account Deletion",
+      "Enter your current password to continue.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Continue",
+          style: "destructive",
+          onPress: (password?: string) => {
+            if (!password?.trim()) {
+              Alert.alert(
+                "Error",
+                "Your current password is required."
+              );
+              return;
+            }
+
+            Alert.alert(
+              "Final Confirmation",
+              "Your account and associated data will be permanently deleted. Are you absolutely sure?",
+              [
+                {
+                  text: "Cancel",
+                  style: "cancel",
+                },
+                {
+                  text: "Delete Permanently",
+                  style: "destructive",
+                  onPress: () => deleteAccount(password),
+                },
+              ]
+            );
+          },
+        },
+      ],
+      "secure-text"
+    );
+  };
+
+  const deleteAccount = async (password: string) => {
+    try {
+      setDeletingAccount(true);
+
+      const response = await authenticatedRequest(`${API_URL}/me`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          currentPassword: password,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        Alert.alert(
+          "Unable to Delete Account",
+          data?.message ?? "Something went wrong. Please try again."
+        );
+        return;
+      }
+
+      await logout();
+
+      Alert.alert(
+        "Account Deleted",
+        "Your GeoPhoto account has been successfully deleted.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/auth/login"),
+          },
+        ]
+      );
+    } catch {
+      Alert.alert(
+        "Error",
+        "Unable to connect to the server. Please try again."
+      );
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
   const inputStyle = [
     styles.input,
     {
@@ -288,7 +396,7 @@ export default function AccountInformation() {
     <SafeAreaView
       style={[
         styles.fullScreen,
-        { backgroundColor: '#151718' },
+        { backgroundColor: "#151718" },
       ]}
       edges={["top"]}
     >
@@ -401,6 +509,7 @@ export default function AccountInformation() {
               )}
             </Pressable>
           </ThemedView>
+
           {/* Email */}
 
           <ThemedView style={styles.section}>
@@ -492,6 +601,41 @@ export default function AccountInformation() {
               )}
             </Pressable>
           </ThemedView>
+
+          {/* Account deletion */}
+
+          <View style={styles.dangerSection}>
+            <View style={styles.divider} />
+
+            <ThemedText style={styles.dangerTitle}>
+              Delete Account
+            </ThemedText>
+
+            <ThemedText style={styles.dangerDescription}>
+              Permanently delete your account and all associated
+              locations, photos, comments, likes, and bookmarks.
+              This action cannot be undone.
+            </ThemedText>
+
+            <Pressable
+              onPress={confirmDeleteAccount}
+              disabled={deletingAccount}
+              style={[
+                styles.deleteButton,
+                {
+                  opacity: deletingAccount ? 0.6 : 1,
+                },
+              ]}
+            >
+              {deletingAccount ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <ThemedText style={styles.deleteText}>
+                  Delete Account
+                </ThemedText>
+              )}
+            </Pressable>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -574,5 +718,44 @@ const styles = StyleSheet.create({
 
   nameInput: {
     flex: 1,
+  },
+
+  dangerSection: {
+    marginTop: 5,
+    marginBottom: 20,
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: "#555",
+    marginBottom: 25,
+  },
+
+  dangerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#ff5555",
+    marginBottom: 10,
+  },
+
+  dangerDescription: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: "#cccccc",
+    marginBottom: 18,
+  },
+
+  deleteButton: {
+    backgroundColor: "#c62828",
+    height: 46,
+    borderRadius: 4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  deleteText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "700",
   },
 });

@@ -838,6 +838,161 @@ app.MapPut("/me", async (
 })
 .RequireAuthorization();
 
+
+app.MapDelete("/me", async (
+    DeleteAccountRequest request,
+    ClaimsPrincipal currentUser,
+    AppDbContext db,
+    UserManager<ApplicationUser> userManager,
+    CloudinaryService cloudinaryService,
+    ILogger<Program> logger) =>
+{
+    var userId = currentUser.FindFirstValue(
+        ClaimTypes.NameIdentifier);
+
+    if (string.IsNullOrWhiteSpace(userId))
+        return Results.Unauthorized();
+
+    var user = await userManager.FindByIdAsync(userId);
+
+    if (user == null)
+        return Results.NotFound();
+
+    // Require the current password before deleting the account.
+    if (string.IsNullOrWhiteSpace(request.CurrentPassword))
+    {
+        return Results.BadRequest(new
+        {
+            message = "Current password is required."
+        });
+    }
+
+    var passwordIsValid = await userManager.CheckPasswordAsync(
+        user,
+        request.CurrentPassword
+    );
+
+    if (!passwordIsValid)
+    {
+        return Results.BadRequest(new
+        {
+            message = "Current password is incorrect."
+        });
+    }
+
+    // Collect image URLs before deleting the database records.
+    var profilePicture = user.ProfilePicture;
+
+    var locations = await db.Locations
+        .Where(location => location.UserId == userId)
+        .ToListAsync();
+
+    var locationImageUrls = locations
+        .Select(location => location.ImageUrl)
+        .Where(url => !string.IsNullOrWhiteSpace(url))
+        .ToList();
+
+    var locationIds = locations
+        .Select(location => location.Id)
+        .ToList();
+
+    // Remove comments written by this user and comments
+    // belonging to locations owned by this user.
+    var comments = await db.Comments
+        .Where(comment =>
+            comment.UserId == userId ||
+            locationIds.Contains(comment.LocationId))
+        .ToListAsync();
+
+    // Remove likes and bookmarks made by this user,
+    // as well as interactions on their locations.
+    var likes = await db.LocationLikes
+        .Where(like =>
+            like.UserId == userId ||
+            locationIds.Contains(like.LocationId))
+        .ToListAsync();
+
+    var bookmarks = await db.Bookmarks
+        .Where(bookmark =>
+            bookmark.UserId == userId ||
+            locationIds.Contains(bookmark.LocationId))
+        .ToListAsync();
+
+    // Perform database deletion inside a transaction.
+    await using var transaction =
+        await db.Database.BeginTransactionAsync();
+
+    try
+    {
+        db.Comments.RemoveRange(comments);
+        db.LocationLikes.RemoveRange(likes);
+        db.Bookmarks.RemoveRange(bookmarks);
+        db.Locations.RemoveRange(locations);
+
+        await db.SaveChangesAsync();
+
+        // Delete the Identity account.
+        var deleteResult = await userManager.DeleteAsync(user);
+
+        if (!deleteResult.Succeeded)
+        {
+            await transaction.RollbackAsync();
+
+            logger.LogError(
+                "Account deletion failed for user {UserId}: {Errors}",
+                userId,
+                string.Join(", ", deleteResult.Errors.Select(
+                    error => error.Description)));
+
+            return Results.Problem(
+                "Account deletion could not be completed.");
+        }
+
+        await transaction.CommitAsync();
+    }
+    catch (Exception exception)
+    {
+        await transaction.RollbackAsync();
+
+        logger.LogError(
+            exception,
+            "Database account deletion failed for user {UserId}",
+            userId);
+
+        return Results.Problem(
+            "Account deletion could not be completed.");
+    }
+
+    // Clean up Cloudinary images after the database transaction.
+    var imageUrls = locationImageUrls
+        .Append(profilePicture)
+        .Where(url => !string.IsNullOrWhiteSpace(url))
+        .Distinct()
+        .ToList();
+
+    foreach (var imageUrl in imageUrls)
+    {
+        try
+        {
+            await cloudinaryService.DeleteImageAsync(imageUrl);
+        }
+        catch (Exception exception)
+        {
+            logger.LogError(
+                exception,
+                "Cloudinary cleanup failed for deleted user {UserId}",
+                userId);
+        }
+    }
+
+    return Results.Ok(new
+    {
+        message = "Your account has been deleted."
+    });
+})
+.RequireAuthorization();
+
+
 app.MapPost("/locations", async (
     AppDbContext db,
     Location location,

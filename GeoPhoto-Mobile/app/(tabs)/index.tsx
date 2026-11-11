@@ -20,12 +20,14 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
+// Configures the Mapbox SDK used by the map screen.
 Mapbox.setAccessToken(
   "pk.eyJ1IjoiZ2F3YWluNDA0IiwiYSI6ImNtdzltbjV6bzAwZWIyeG9rd3h3bmRqN20ifQ.qu6I4sIfsLbsO56JXERf9Q"
 );
 
-const API_URL = "https://geophoto-production-581e.up.railway.app";
+const API_URL = "https://geophoto-production-581e.up.railway.app"; // Deployed backend API.
 
+// Shape of a location returned by the API.
 type MapLocation = {
   id: number;
   latitude: number;
@@ -41,6 +43,7 @@ type MapLocation = {
   bookmarkedByMe: boolean;
 };
 
+// Shape of a comment returned by the API.
 type Comment = {
   id: number;
   text: string;
@@ -50,6 +53,7 @@ type Comment = {
   isMine: boolean;
 };
 
+// Screen position and size of a comment menu trigger.
 type CommentMenuPosition = {
   x: number;
   y: number;
@@ -57,6 +61,7 @@ type CommentMenuPosition = {
   height: number;
 };
 
+// Builds a usable image URL from an API-relative path or full URL.
 function getApiUrl(value?: string | null) {
   if (!value) return null;
 
@@ -67,6 +72,7 @@ function getApiUrl(value?: string | null) {
   return `${API_URL}${value.startsWith("/") ? "" : "/"}${value}`;
 }
 
+// Formats a timestamp for display in the location and comment panels.
 function formatDate(value?: string | null) {
   if (!value) return "";
 
@@ -81,51 +87,56 @@ function formatDate(value?: string | null) {
   });
 }
 
+// Main map screen and entry point for location browsing and creation.
 export default function HomeScreen() {
-  const { user } = useAuth();
-  const { colors } = useTheme();
-  const { locationId } = useLocalSearchParams();
-  const navigation = useNavigation("/(tabs)");
+  const { user } = useAuth(); // Signed-in user, when available.
+  const { colors } = useTheme(); // Current app theme colors.
+  const { locationId } = useLocalSearchParams(); // Optional location opened from another screen.
+  const navigation = useNavigation("/(tabs)"); // Tab navigation controls.
 
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [description, setDescription] = useState("");
-  const [showCamera, setShowCamera] = useState(false);
+  const [latitude, setLatitude] = useState<number | null>(null); // GPS latitude for a new post.
+  const [longitude, setLongitude] = useState<number | null>(null); // GPS longitude for a new post.
+  const [imageUrl, setImageUrl] = useState<string | null>(null); // Uploaded image URL for a new post.
+  const [description, setDescription] = useState(""); // Description entered for a new post.
+  const [showCamera, setShowCamera] = useState(false); // Controls the full-screen camera overlay.
 
-  const [locations, setLocations] = useState<MapLocation[]>([]);
+  const [locations, setLocations] = useState<MapLocation[]>([]); // Locations displayed as map markers.
+  // Location currently displayed in the details sheet.
   const [selectedLocation, setSelectedLocation] =
     useState<MapLocation | null>(null);
 
-  const [isLiking, setIsLiking] = useState(false);
-  const [isBookmarking, setIsBookmarking] = useState(false);
+  const [isLiking, setIsLiking] = useState(false); // Prevents repeated like requests.
+  const [isBookmarking, setIsBookmarking] = useState(false); // Prevents repeated bookmark requests.
 
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [commentText, setCommentText] = useState("");
-  const [commentsLoading, setCommentsLoading] = useState(false);
-  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]); // Comments for the selected location.
+  const [commentText, setCommentText] = useState(""); // Current comment input.
+  const [commentsLoading, setCommentsLoading] = useState(false); // Shows comment-loading state.
+  const [commentSubmitting, setCommentSubmitting] = useState(false); // Prevents duplicate comment submissions.
 
-  const [commentMenuId, setCommentMenuId] = useState<number | null>(null);
+  const [commentMenuId, setCommentMenuId] = useState<number | null>(null); // ID of the comment with its menu open.
 
+  // Screen coordinates used to place the comment menu.
   const [commentMenuPosition, setCommentMenuPosition] =
     useState<CommentMenuPosition | null>(null);
 
-  const cameraRef = useRef<Mapbox.Camera>(null);
-  const locationSheetRef = useRef<BottomSheet>(null);
-  const uploadSheetRef = useRef<BottomSheet>(null);
-  const commentsSheetRef = useRef<BottomSheet>(null);
+  const cameraRef = useRef<Mapbox.Camera>(null); // Imperative map camera controls.
+  const locationSheetRef = useRef<BottomSheet>(null); // Selected-location sheet controls.
+  const uploadSheetRef = useRef<BottomSheet>(null); // Create-location sheet controls.
+  const commentsSheetRef = useRef<BottomSheet>(null); // Comments sheet controls.
 
-  const commentButtonRefs = useRef<Record<number, any>>({});
+  const commentButtonRefs = useRef<Record<number, any>>({}); // Comment menu trigger positions.
 
-  const zoomLevelRef = useRef(12);
+  const zoomLevelRef = useRef(12); // Latest map zoom without rerendering.
 
-  const locationSnapPoints = useMemo(() => ["85%", "92%"], []);
-  const commentsSnapPoints = useMemo(() => ["75%"], []);
-  const uploadSnapPoints = useMemo(() => ["25%"], []);
+  const locationSnapPoints = useMemo(() => ["85%", "92%"], []); // Heights for the location details sheet.
+  const commentsSnapPoints = useMemo(() => ["75%"], []); // Height for the comments sheet.
+  const uploadSnapPoints = useMemo(() => ["25%"], []); // Height for the upload sheet.
 
+  // Reads the saved authentication token for protected requests.
   const tokenForRequest = async () =>
     SecureStore.getItemAsync("token");
 
+  // Loads public locations and updates the map markers.
   const fetchLocations = useCallback(async () => {
     try {
       const token = await tokenForRequest();
@@ -158,10 +169,12 @@ export default function HomeScreen() {
     }
   }, []);
 
+  // Refreshes the map data using the shared location loader.
   const refreshMapData = useCallback(async () => {
     await fetchLocations();
   }, [fetchLocations]);
 
+  // Opens the selected location details sheet.
   const openLocation = useCallback((marker: MapLocation) => {
     setSelectedLocation(marker);
     setCommentMenuId(null);
@@ -170,6 +183,7 @@ export default function HomeScreen() {
     locationSheetRef.current?.snapToIndex(0);
   }, []);
 
+  // Dismisses the location sheet and its temporary menus.
   const closeLocation = useCallback(() => {
     Keyboard.dismiss();
     setCommentMenuId(null);
@@ -178,6 +192,7 @@ export default function HomeScreen() {
     locationSheetRef.current?.close();
   }, []);
 
+  // Finds a tapped marker and opens its location details.
   const handleLocationPress = useCallback(
     (id: number) => {
       const location = locations.find(
@@ -191,6 +206,7 @@ export default function HomeScreen() {
     [locations, openLocation]
   );
 
+  // Keeps the selected location and map data in sync.
   const updateSelectedLocation = useCallback(
     (updated: MapLocation) => {
       setSelectedLocation(updated);
@@ -204,6 +220,7 @@ export default function HomeScreen() {
     []
   );
 
+  // Retrieves comments for the selected location.
   const loadComments = useCallback(
     async (locationId: number) => {
       try {
@@ -249,6 +266,7 @@ export default function HomeScreen() {
     []
   );
 
+  // Opens the comments sheet and loads its comments.
   const openComments = useCallback(() => {
     if (!selectedLocation) return;
 
@@ -261,6 +279,7 @@ export default function HomeScreen() {
     void loadComments(selectedLocation.id);
   }, [loadComments, selectedLocation]);
 
+  // Dismisses the comments sheet and keyboard.
   const closeComments = useCallback(() => {
     Keyboard.dismiss();
     setCommentMenuId(null);
@@ -269,6 +288,7 @@ export default function HomeScreen() {
     commentsSheetRef.current?.close();
   }, []);
 
+  // Adds or removes the current user’s like.
   const toggleLike = async () => {
     if (!selectedLocation || isLiking) return;
 
@@ -340,6 +360,7 @@ export default function HomeScreen() {
     }
   };
 
+  // Adds or removes the current user’s bookmark.
   const toggleBookmark = async () => {
     if (!selectedLocation || isBookmarking) return;
 
@@ -395,6 +416,7 @@ export default function HomeScreen() {
     }
   };
 
+  // Validates and submits a new comment.
   const submitComment = async () => {
     const text = commentText.trim();
 
@@ -461,6 +483,7 @@ export default function HomeScreen() {
     }
   };
 
+  // Confirms and deletes a comment owned by the current user.
   const handleDeleteComment = (
     comment: Comment
   ) => {
@@ -561,6 +584,7 @@ export default function HomeScreen() {
     );
   };
 
+  // Positions the comment action menu beside its trigger.
   const openCommentMenu = (
     commentId: number
   ) => {
@@ -590,11 +614,13 @@ export default function HomeScreen() {
     );
   };
 
+  // Closes the comment action menu.
   const closeCommentMenu = () => {
     setCommentMenuId(null);
     setCommentMenuPosition(null);
   };
 
+  // Centers the map on the selected location.
   const goToLocation = () => {
     if (!selectedLocation) return;
 
@@ -612,6 +638,7 @@ export default function HomeScreen() {
     closeLocation();
   };
 
+  // Confirms and deletes a location owned by the current user.
   const deleteLocation = async (
     id: number
   ) => {
@@ -680,6 +707,7 @@ export default function HomeScreen() {
     fetchLocations();
   };
 
+  // Moves the map to the device’s current GPS position.
   const myLocation = async () => {
     const { status } =
       await Location.requestForegroundPermissionsAsync();
@@ -710,6 +738,7 @@ export default function HomeScreen() {
     });
   };
 
+  // Decreases the map zoom level.
   const zoomOut = () => {
     const newZoom = Math.max(0, zoomLevelRef.current - 5);
 
@@ -721,6 +750,7 @@ export default function HomeScreen() {
     });
   };
 
+  // Checks location permission before opening the camera.
   const takeLocation = async () => {
     const { status } =
       await Location.requestForegroundPermissionsAsync();
@@ -736,6 +766,7 @@ export default function HomeScreen() {
     setShowCamera(true);
   };
 
+  // Sends the captured photo details to the API.
   const addLocation = async () => {
     const token = await tokenForRequest();
 
@@ -788,6 +819,7 @@ export default function HomeScreen() {
     return await res.json();
   };
 
+  // Creates the location, refreshes map data, and opens the new post.
   const confirmUpload = async () => {
     if (
       latitude == null ||
@@ -877,15 +909,18 @@ export default function HomeScreen() {
     }
   };
 
+  // Expands the create-location sheet.
   const openSheet = () => {
     uploadSheetRef.current?.expand();
   };
 
+  // Dismisses the create-location sheet and keyboard.
   const closeSheet = () => {
     Keyboard.dismiss();
     uploadSheetRef.current?.close();
   };
 
+  // Hides the tab bar while the camera is open.
   useEffect(() => {
     navigation.setOptions({
       tabBarStyle: showCamera
@@ -894,10 +929,12 @@ export default function HomeScreen() {
     });
   }, [showCamera, navigation]);
 
+  // Loads the latest locations when the map screen mounts.
   useEffect(() => {
     refreshMapData();
   }, [refreshMapData]);
 
+  // Opens a location when another screen passes its ID back here.
   useFocusEffect(
     useCallback(() => {
       if (
@@ -942,12 +979,14 @@ export default function HomeScreen() {
     ])
   );
 
+  // True when the selected location belongs to this user.
   const selectedIsMine =
     !!selectedLocation &&
     !!user?.username &&
     selectedLocation.username ===
       user.username;
 
+  // Renders one comment row, including its author and actions.
   const renderComment = ({
     item,
   }: {
@@ -1055,13 +1094,15 @@ export default function HomeScreen() {
     );
   };
 
-  const menuWidth = 130;
-  const menuHeight = 48;
-  const menuSpacing = 8;
+  const menuWidth = 130; // Comment menu dimensions.
+  const menuHeight = 48; // Comment menu dimensions.
+  const menuSpacing = 8; // Gap between the menu and its trigger.
 
+  // Screen bounds used to keep the comment menu visible.
   const screenWidth =
     Dimensions.get("window").width;
 
+  // Screen bounds used to keep the comment menu visible.
   const screenHeight =
     Dimensions.get("window").height;
 
@@ -1114,6 +1155,7 @@ export default function HomeScreen() {
       >
         <BottomSheetModalProvider>
           <View style={styles.container}>
+            {/* Interactive map and location markers */}
             <Mapbox.MapView
               style={styles.map}
               onCameraChanged={(event) => {
@@ -1240,7 +1282,7 @@ export default function HomeScreen() {
               </>
             )}
 
-            {/* Selected location */}
+            {/* Selected location details and actions */}
             <BottomSheet
               ref={locationSheetRef}
               index={-1}
@@ -1671,7 +1713,7 @@ export default function HomeScreen() {
               </BottomSheetScrollView>
             </BottomSheet>
 
-            {/* Comments */}
+            {/* Comments list and comment composer */}
             <BottomSheet
               ref={commentsSheetRef}
               index={-1}
@@ -1959,7 +2001,7 @@ export default function HomeScreen() {
               </Pressable>
             </Modal>
 
-            {/* Create location */}
+            {/* New location description and upload controls */}
             <BottomSheet
               ref={uploadSheetRef}
               index={-1}
@@ -2070,6 +2112,7 @@ export default function HomeScreen() {
               </BottomSheetView>
             </BottomSheet>
 
+            {/* Camera capture overlay */}
             {showCamera && (
               <View
                 style={
@@ -2136,6 +2179,7 @@ export default function HomeScreen() {
   );
 }
 
+  // Styles for the map, sheets, menus, and camera overlay.
 const styles = StyleSheet.create({
   container: {
     flex: 1,

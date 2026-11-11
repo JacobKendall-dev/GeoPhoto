@@ -1,3 +1,4 @@
+
 import {
   Pressable,
   StyleSheet,
@@ -62,38 +63,12 @@ export default function Settings() {
           />
         </Pressable>
 
-        <Pressable style={styles.settingRow}>
+        <Pressable
+          onPress={() => router.push("/settings/privacy-policy")}
+          style={styles.settingRow}
+        >
           <ThemedText type="default">
             Privacy & Security
-          </ThemedText>
-
-          <MaterialIcons
-            name="chevron-right"
-            size={24}
-            color="gray"
-          />
-        </Pressable>
-
-        {/* Preferences */}
-        <ThemedText type="subtitle" style={styles.sectionTitle}>
-          Preferences
-        </ThemedText>
-
-        <Pressable style={styles.settingRow}>
-          <ThemedText type="default">
-            Appearance
-          </ThemedText>
-
-          <MaterialIcons
-            name="chevron-right"
-            size={24}
-            color="gray"
-          />
-        </Pressable>
-
-        <Pressable style={styles.settingRow}>
-          <ThemedText type="default">
-            Notifications
           </ThemedText>
 
           <MaterialIcons
@@ -108,9 +83,12 @@ export default function Settings() {
           About
         </ThemedText>
 
-        <Pressable style={styles.settingRow}>
+        <Pressable
+          onPress={() => router.push("/settings/about")}
+          style={styles.settingRow}
+        >
           <ThemedText type="default">
-            About MapApp
+            About GeoPhoto
           </ThemedText>
 
           <MaterialIcons

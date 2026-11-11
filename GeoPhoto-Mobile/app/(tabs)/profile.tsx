@@ -1,24 +1,8 @@
 import { Image } from "expo-image";
-import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
+import {ActivityIndicator, Alert, Dimensions, FlatList, Modal, Pressable, StyleSheet, View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-import {
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-} from "react";
+import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
+import {useState, useRef, useCallback, useMemo} from "react";
 
 import { useAuth } from "../../context/AuthContext";
 import { ThemedView } from "@/components/themed-view";
@@ -26,17 +10,16 @@ import { ThemedText } from "@/components/themed-text";
 
 import * as SecureStore from "expo-secure-store";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { useTheme } from "@react-navigation/native";
 
-import BottomSheet, {
-  BottomSheetFlatList,
-  BottomSheetTextInput,
-} from "@gorhom/bottom-sheet";
+import BottomSheet, {BottomSheetFlatList, BottomSheetTextInput} from "@gorhom/bottom-sheet";
 
+// API base address.
 const API_URL = "https://geophoto-production-581e.up.railway.app";
 
+// Location data returned by the API.
 type Location = {
   id: number;
   latitude: number;
@@ -52,6 +35,7 @@ type Location = {
   bookmarkedByMe: boolean;
 };
 
+// Comment data returned by the API.
 type Comment = {
   id: number;
   text: string;
@@ -61,8 +45,10 @@ type Comment = {
   isMine: boolean;
 };
 
+// Available profile collection tabs.
 type ProfileTab = "locations" | "bookmarks";
 
+// Screen coordinates used to position the popup menus.
 type CommentMenuPosition = {
   x: number;
   y: number;
@@ -71,83 +57,62 @@ type CommentMenuPosition = {
 };
 
 export default function Profile() {
-  const { authenticatedRequest, user } = useAuth();
-  const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { authenticatedRequest, user } = useAuth(); // Authentication context.
+  const { colors } = useTheme(); // Current navigation theme colors.
+  const insets = useSafeAreaInsets(); // Device safe-area spacing.
 
-  const [locations, setLocations] = useState<Location[]>(
-    []
-  );
+  // Locations created by the current user.
+  const [locations, setLocations] = useState<Location[]>([]);
 
-  const [bookmarks, setBookmarks] = useState<Location[]>(
-    []
-  );
+  // Locations bookmarked by the current user.
+  const [bookmarks, setBookmarks] = useState<Location[]>([]);
 
-  const [activeTab, setActiveTab] =
-    useState<ProfileTab>("locations");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("locations"); // Selected collection tab.
 
-  const [showPosts, setShowPosts] = useState(false);
-  const [selectedIndex, setSelectedIndex] =
-    useState(0);
+  const [showPosts, setShowPosts] = useState(false); // Whether the full post view is open.
 
-  const [profilePicture, setProfilePicture] =
-    useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null); // Current profile picture URL.
 
-  const [showPicture, setShowPicture] =
-    useState(false);
+  const [showPicture, setShowPicture] = useState(false); // Whether the enlarged picture is open.
 
-  const [showOptions, setShowOptions] =
-    useState(false);
+  const [showOptions, setShowOptions] = useState(false); // Whether picture upload options are open.
 
   /*
    * Comments
    */
 
-  const [selectedLocation, setSelectedLocation] =
-    useState<Location | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null); // Location whose comments are open.
 
-  const [comments, setComments] = useState<Comment[]>(
-    []
-  );
+  const [comments, setComments] = useState<Comment[]>([]); // Comments for the selected location.
 
-  const [commentText, setCommentText] =
-    useState("");
+  const [commentText, setCommentText] = useState(""); // Current comment input.
 
-  const [commentsLoading, setCommentsLoading] =
-    useState(false);
+  const [commentsLoading, setCommentsLoading] = useState(false); // Whether comments are loading.
 
-  const [commentSending, setCommentSending] =
-    useState(false);
+  const [commentSending, setCommentSending] = useState(false); // Whether a comment is being submitted.
 
-  const [commentMenuId, setCommentMenuId] =
-    useState<number | null>(null);
+  const [commentMenuId, setCommentMenuId] = useState<number | null>(null); // Comment with its menu open.
 
-  const [commentMenuPosition, setCommentMenuPosition] =
-    useState<CommentMenuPosition | null>(null);
+  const [commentMenuPosition, setCommentMenuPosition] = useState<CommentMenuPosition | null>(null); // Comment menu screen position.
 
-  const [locationMenuId, setLocationMenuId] =
-    useState<number | null>(null);
+  const [locationMenuId, setLocationMenuId] = useState<number | null>(null); // Location with its menu open.
 
-  const [locationMenuPosition, setLocationMenuPosition] =
-    useState<CommentMenuPosition | null>(null);
+  const [locationMenuPosition, setLocationMenuPosition] = useState<CommentMenuPosition | null>(null); // Location menu screen position.
 
-  const commentButtonRefs =
-    useRef<Record<number, any>>({});
+  // References used to measure the popup menu anchor positions.
+  const commentButtonRefs = useRef<Record<number, any>>({});
+  const locationButtonRefs = useRef<Record<number, any>>({});
 
-  const locationButtonRefs =
-    useRef<Record<number, any>>({});
+  const commentsSheetRef = useRef<BottomSheet>(null); // Comments bottom sheet reference.
+  const postsListRef = useRef<FlatList<Location>>(null); // Full post list reference.
 
-  const commentsSheetRef =
-    useRef<BottomSheet>(null);
-
-  const postsListRef =
-    useRef<FlatList<Location>>(null);
-
+  // Height of the comments bottom sheet.
   const commentSnapPoints = useMemo(
     () => ["75%"],
     []
   );
 
+  // Collection displayed according to the active tab.
   const activeLocations =
     activeTab === "locations"
       ? locations
@@ -157,6 +122,7 @@ export default function Profile() {
    * Profile picture upload
    */
 
+  // Opens the camera and uploads a new profile picture.
   const takeProfilePicture = async () => {
     const permission =
       await ImagePicker.requestCameraPermissionsAsync();
@@ -164,7 +130,7 @@ export default function Profile() {
     if (!permission.granted) {
       Alert.alert(
         "Camera Permission",
-        "MapApp needs camera access to take a profile picture."
+        "GeoPhoto needs camera access to take a profile picture."
       );
       return;
     }
@@ -182,9 +148,8 @@ export default function Profile() {
     }
 
     try {
-      const image = result.assets[0];
-
-      const formData = new FormData();
+      const image = result.assets[0]; // Captured image.
+      const formData = new FormData(); // Multipart upload body.
 
       formData.append("image", {
         uri: image.uri,
@@ -192,6 +157,7 @@ export default function Profile() {
         type: "image/jpeg",
       } as any);
 
+      // Upload the image to Cloudinary through the API.
       const uploadResponse = await authenticatedRequest(
         `${API_URL}/images/profile`,
         {
@@ -212,6 +178,7 @@ export default function Profile() {
       const storedToken =
         await SecureStore.getItemAsync("token");
 
+      // Save the uploaded image URL to the user's profile.
       const profileResponse = await authenticatedRequest(
         `${API_URL}/users/profile-picture`,
         {
@@ -252,6 +219,7 @@ export default function Profile() {
     }
   };
 
+  // Opens the image library and uploads a selected profile picture.
   const chooseProfilePicture = async () => {
     const result =
       await ImagePicker.launchImageLibraryAsync({
@@ -266,9 +234,8 @@ export default function Profile() {
     }
 
     try {
-      const image = result.assets[0];
-
-      const formData = new FormData();
+      const image = result.assets[0]; // Selected image.
+      const formData = new FormData(); // Multipart upload body.
 
       formData.append("image", {
         uri: image.uri,
@@ -276,6 +243,7 @@ export default function Profile() {
         type: "image/jpeg",
       } as any);
 
+      // Upload the image to Cloudinary through the API.
       const uploadResponse = await authenticatedRequest(
         `${API_URL}/images/profile`,
         {
@@ -296,6 +264,7 @@ export default function Profile() {
       const storedToken =
         await SecureStore.getItemAsync("token");
 
+      // Save the uploaded image URL to the user's profile.
       const profileResponse = await authenticatedRequest(
         `${API_URL}/users/profile-picture`,
         {
@@ -340,18 +309,20 @@ export default function Profile() {
    * Fetch locations
    */
 
-  const fetchLocations = async () => {
+  // Retrieves public locations, then filters the current user's posts and bookmarks.
+  const fetchLocations = useCallback(async () => {
     try {
       const storedToken =
         await SecureStore.getItemAsync("token");
 
-      const headers: HeadersInit = {};
+      const headers: Record<string, string> = {};
 
       if (storedToken) {
         headers.Authorization =
           "Bearer " + storedToken;
       }
 
+      // Retrieve locations with the current user's interaction data.
       const response = await authenticatedRequest(
         `${API_URL}/locations`,
         {
@@ -370,6 +341,7 @@ export default function Profile() {
       const data: Location[] =
         await response.json();
 
+      // Retrieve locations created by the current user.
       const myLocationsResponse =
         await authenticatedRequest(
           `${API_URL}/locations/me`,
@@ -389,6 +361,7 @@ export default function Profile() {
       const myLocations: Location[] =
         await myLocationsResponse.json();
 
+      // Build a set of the user's location IDs for filtering.
       const myLocationIds =
         new Set(
           myLocations.map(
@@ -405,6 +378,7 @@ export default function Profile() {
         myFullLocations
       );
 
+      // Keep only locations bookmarked by the current user.
       const myBookmarks =
         data.filter(
           (location) =>
@@ -418,13 +392,14 @@ export default function Profile() {
         error
       );
     }
-  };
+  }, [authenticatedRequest]);
 
   /*
    * Fetch profile
    */
 
-  const fetchProfile = async () => {
+  // Retrieves the current user's profile picture.
+  const fetchProfile = useCallback(async () => {
     try {
       const storedToken =
         await SecureStore.getItemAsync("token");
@@ -459,19 +434,22 @@ export default function Profile() {
         error
       );
     }
-  };
+  }, [authenticatedRequest]);
 
-  useEffect(() => {
-    fetchLocations();
-    fetchProfile();
-  }, []);
+  // Refresh profile information whenever this screen gains focus.
+  useFocusEffect(
+    useCallback(() => {
+      fetchLocations();
+      fetchProfile();
+    }, [fetchLocations, fetchProfile])
+  );
 
   /*
    * Post navigation
    */
 
+  // Opens the full post list and scrolls to the selected location.
   const openPost = (index: number) => {
-    setSelectedIndex(index);
     setShowPosts(true);
 
     setTimeout(() => {
@@ -482,6 +460,7 @@ export default function Profile() {
     }, 100);
   };
 
+  // Returns to the profile grid.
   const closePosts = () => {
     setShowPosts(false);
   };
@@ -490,6 +469,7 @@ export default function Profile() {
    * Likes
    */
 
+  // Adds or removes a like and updates both collections.
   const handleLike = async (
     location: Location
   ) => {
@@ -527,6 +507,7 @@ export default function Profile() {
       const liked =
         !location.likedByMe;
 
+      // Update the matching location without replacing unrelated items.
       const updateLocation = (
         item: Location
       ): Location => {
@@ -570,6 +551,7 @@ export default function Profile() {
    * Comments
    */
 
+  // Opens the comments sheet and retrieves comments for a location.
   const openComments = async (
     location: Location
   ) => {
@@ -589,7 +571,7 @@ export default function Profile() {
       const storedToken =
         await SecureStore.getItemAsync("token");
 
-      const headers: HeadersInit = {};
+      const headers: Record<string, string> = {};
 
       if (storedToken) {
         headers.Authorization =
@@ -628,23 +610,20 @@ export default function Profile() {
     }
   };
 
+  // Submits a comment and refreshes the displayed comments.
   const handleSendComment = async () => {
-    const trimmedText =
-      commentText.trim();
+    const trimmedText = commentText.trim(); // Remove surrounding whitespace.
 
-    if (!trimmedText) {
+    if (!trimmedText || !selectedLocation) {
       return;
     }
 
-    if (!selectedLocation) {
-      return;
-    }
+    const locationId = selectedLocation.id; // Preserve the target location ID.
 
     try {
       setCommentSending(true);
 
-      const storedToken =
-        await SecureStore.getItemAsync("token");
+      const storedToken = await SecureStore.getItemAsync("token");
 
       if (!storedToken) {
         Alert.alert(
@@ -655,14 +634,12 @@ export default function Profile() {
       }
 
       const response = await authenticatedRequest(
-        `${API_URL}/locations/${selectedLocation.id}/comments`,
+        `${API_URL}/locations/${locationId}/comments`,
         {
           method: "POST",
           headers: {
-            "Content-Type":
-              "application/json",
-            Authorization:
-              "Bearer " + storedToken,
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + storedToken,
           },
           body: JSON.stringify({
             text: trimmedText,
@@ -676,85 +653,68 @@ export default function Profile() {
         );
       }
 
-      /*
-       * Refetch so the new comment gets:
-       *
-       * username
-       * profilePicture
-       * isMine
-       * createdAt
-       */
-      const commentsResponse =
-        await authenticatedRequest(
-          `${API_URL}/locations/${selectedLocation.id}/comments`,
-          {
-            headers: {
-              Authorization:
-                "Bearer " + storedToken,
-            },
-          }
-        );
-
-      if (!commentsResponse.ok) {
-        throw new Error(
-          `Comments refresh failed: ${commentsResponse.status}`
-        );
-      }
-
-      const updatedComments =
-        await commentsResponse.json();
-
-      setComments(
-        updatedComments
-      );
-
+      // The comment was saved. Clear the input and update counts now,
+      // independently of whether the follow-up comments refresh succeeds.
       setCommentText("");
 
-      const updateCommentCount = (
-        item: Location
-      ): Location => {
-        if (
-          item.id !==
-          selectedLocation.id
-        ) {
+      // Increment the comment count for the matching location.
+      const updateCommentCount = (item: Location): Location => {
+        if (item.id !== locationId) {
           return item;
         }
 
         return {
           ...item,
-          commentCount:
-            item.commentCount + 1,
+          commentCount: item.commentCount + 1,
         };
       };
 
-      setLocations((current) =>
-        current.map(
-          updateCommentCount
-        )
+      setLocations((current) => current.map(updateCommentCount));
+      setBookmarks((current) => current.map(updateCommentCount));
+
+      // Keep the selected location's count in sync with the collections.
+      setSelectedLocation((current) =>
+        current && current.id === locationId
+          ? {
+              ...current,
+              commentCount: current.commentCount + 1,
+            }
+          : current
       );
 
-      setBookmarks((current) =>
-        current.map(
-          updateCommentCount
-        )
-      );
+      // Refresh separately. A refresh failure must not make a successful
+      // comment submission appear to have failed.
+      try {
+        const commentsResponse = await authenticatedRequest(
+          `${API_URL}/locations/${locationId}/comments`,
+          {
+            headers: {
+              Authorization: "Bearer " + storedToken,
+            },
+          }
+        );
 
-      setSelectedLocation(
-        (current) =>
-          current
-            ? {
-                ...current,
-                commentCount:
-                  current.commentCount +
-                  1,
-              }
-            : current
-      );
+        if (!commentsResponse.ok) {
+          throw new Error(
+            `Comments refresh failed: ${commentsResponse.status}`
+          );
+        }
+
+        const updatedComments = await commentsResponse.json();
+        setComments(updatedComments);
+      } catch (refreshError) {
+        console.log(
+          "Comment posted, but comments refresh failed:",
+          refreshError
+        );
+
+        Alert.alert(
+          "Comment Posted",
+          "Your comment was posted, but the comments list could not be refreshed. Close and reopen comments to try again."
+        );
+      }
     } catch (error) {
-      console.log(
-        "Send comment error:",
-        error
-      );
+      console.log("Send comment error:", error);
 
       Alert.alert(
         "Comment Error",
@@ -765,6 +725,7 @@ export default function Profile() {
     }
   };
 
+  // Confirms and deletes a comment belonging to the current user.
   const handleDeleteComment = (
     comment: Comment
   ) => {
@@ -813,6 +774,7 @@ export default function Profile() {
                 );
               }
 
+              // Remove the deleted comment from the displayed list.
               setComments(
                 (current) =>
                   current.filter(
@@ -822,6 +784,7 @@ export default function Profile() {
                   )
               );
 
+              // Decrease the comment count without allowing it below zero.
               const updateCommentCount = (
                 item: Location
               ): Location => {
@@ -890,6 +853,7 @@ export default function Profile() {
    * Location delete
    */
 
+  // Confirms and deletes one of the current user's locations.
   const handleDeleteLocation = (
     location: Location
   ) => {
@@ -932,6 +896,7 @@ export default function Profile() {
                 );
               }
 
+              // Remove the deleted location from both collections.
               setLocations((current) =>
                 current.filter(
                   (item) => item.id !== location.id
@@ -947,6 +912,7 @@ export default function Profile() {
               setLocationMenuId(null);
               setLocationMenuPosition(null);
 
+              // Close comments if they belong to the deleted location.
               if (selectedLocation?.id === location.id) {
                 commentsSheetRef.current?.close();
                 setSelectedLocation(null);
@@ -971,6 +937,7 @@ export default function Profile() {
     );
   };
 
+  // Measures the location options button before opening its menu.
   const openLocationMenu = (
     locationId: number
   ) => {
@@ -1000,6 +967,7 @@ export default function Profile() {
     );
   };
 
+  // Closes the location options menu.
   const closeLocationMenu = () => {
     setLocationMenuId(null);
     setLocationMenuPosition(null);
@@ -1009,6 +977,7 @@ export default function Profile() {
    * Comment menu
    */
 
+  // Measures the comment options button before opening its menu.
   const openCommentMenu = (
     commentId: number
   ) => {
@@ -1042,16 +1011,19 @@ export default function Profile() {
     );
   };
 
+  // Closes the comment options menu.
   const closeCommentMenu = () => {
     setCommentMenuId(null);
     setCommentMenuPosition(null);
   };
 
+  // Renders an individual comment in the comments list.
   const renderComment = ({
     item,
   }: {
     item: Comment;
   }) => {
+    // Resolve relative profile picture paths against the API address.
     const commentProfilePicture =
       item.profilePicture
         ? item.profilePicture.startsWith(
@@ -1154,6 +1126,7 @@ export default function Profile() {
     );
   };
 
+  // Formats an API date for display.
   const formatDate = (
     dateString: string
   ) => {
@@ -1170,6 +1143,7 @@ export default function Profile() {
     );
   };
 
+  // Resolves relative profile picture paths against the API address.
   const getProfilePictureUri = (
     picture: string | null
   ) => {
@@ -1186,16 +1160,17 @@ export default function Profile() {
    * Comment popup positioning
    */
 
-  const menuWidth = 130;
-  const menuHeight = 48;
-  const menuSpacing = 8;
+  const menuWidth = 130; // Popup menu width.
+  const menuHeight = 48; // Popup menu height.
+  const menuSpacing = 8; // Space between the menu and its button.
 
   const screenWidth =
-    Dimensions.get("window").width;
+    Dimensions.get("window").width; // Device screen width.
 
   const screenHeight =
-    Dimensions.get("window").height;
+    Dimensions.get("window").height; // Device screen height.
 
+  // Calculated position for the comment delete menu.
   let commentMenuStyle: {
     left: number;
     top: number;
@@ -1240,6 +1215,7 @@ export default function Profile() {
     };
   }
 
+  // Calculated position for the location delete menu.
   let locationMenuStyle: {
     left: number;
     top: number;
@@ -1325,6 +1301,7 @@ export default function Profile() {
           </ThemedText>
         </View>
 
+        {/* Full-size posts for the selected collection. */}
         <FlatList
           ref={postsListRef}
           data={activeLocations}
@@ -1352,13 +1329,13 @@ export default function Profile() {
 
             return (
               <View
-              style={[
-                styles.post,
-                {
-                  backgroundColor: colors.card,
-                },
-              ]}
-            >
+                style={[
+                  styles.post,
+                  {
+                    backgroundColor: colors.card,
+                  },
+                ]}
+              >
                 {/* Top profile row + location actions */}
                 <View style={styles.postUser}>
                   <View style={styles.postUserInfo}>
@@ -1397,6 +1374,7 @@ export default function Profile() {
                     </ThemedText>
                   </View>
 
+                  {/* Opens the map at this location. */}
                   <Pressable
                     onPress={() =>
                       router.push({
@@ -1431,6 +1409,7 @@ export default function Profile() {
                     </ThemedText>
                   </Pressable>
 
+                  {/* Location deletion is available on the user's own posts. */}
                   {activeTab === "locations" && (
                     <Pressable
                       ref={(ref) => {
@@ -1451,7 +1430,7 @@ export default function Profile() {
                   )}
                 </View>
 
-                {/* Image */}
+                {/* Location photo. */}
                 {item.imageUrl ? (
                   <Image
                     source={{
@@ -1573,7 +1552,7 @@ export default function Profile() {
                     </ThemedText>
                   </View>
 
-                  {/* Date */}
+                  {/* Post date. */}
                   <ThemedText
                     style={
                       styles.postDate
@@ -1591,6 +1570,7 @@ export default function Profile() {
           onScrollToIndexFailed={(
             info
           ) => {
+            // Fallback scroll when the requested item has not been measured.
             setTimeout(() => {
               postsListRef.current?.scrollToOffset(
                 {
@@ -1623,6 +1603,7 @@ export default function Profile() {
               colors.border,
           }}
           onClose={() => {
+            // Reset comment state when the sheet closes.
             setSelectedLocation(null);
             setComments([]);
             setCommentText("");
@@ -1636,65 +1617,67 @@ export default function Profile() {
             <View
               style={[
                 styles.commentsHeader,
-              {
-                borderBottomColor: colors.border,
-              },
-            ]}
-          >
-            <ThemedText type="subtitle">
-              Comments
-            </ThemedText>
-          </View>
+                {
+                  borderBottomColor: colors.border,
+                },
+              ]}
+            >
+              <ThemedText type="subtitle">
+                Comments
+              </ThemedText>
+            </View>
 
-          <BottomSheetFlatList
-            data={comments}
-            keyExtractor={(item) =>
-              item.id.toString()
-            }
-            renderItem={renderComment}
-            style={{ flex: 1 }}
-            contentContainerStyle={[
-              styles.commentsList,
-              { flexGrow: 1 },
-            ]}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={
-              false
-            }
-            ListEmptyComponent={
-              commentsLoading ? (
-                <View
-                  style={
-                    styles.commentsLoading
-                  }
-                >
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.text}
-                  />
-                </View>
-              ) : (
-                <View
-                  style={
-                    styles.noComments
-                  }
-                >
-                  <ThemedText>
-                    No comments yet.
-                  </ThemedText>
-
-                  <ThemedText
+            {/* Comments list and empty/loading states. */}
+            <BottomSheetFlatList
+              data={comments}
+              keyExtractor={(item) =>
+                item.id.toString()
+              }
+              renderItem={renderComment}
+              style={{ flex: 1 }}
+              contentContainerStyle={[
+                styles.commentsList,
+                { flexGrow: 1 },
+              ]}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={
+                false
+              }
+              ListEmptyComponent={
+                commentsLoading ? (
+                  <View
                     style={
-                      styles.noCommentsSubtext
+                      styles.commentsLoading
                     }
                   >
-                    Be the first to comment.
-                  </ThemedText>
-                </View>
-              )
-            }
-          />
+                    <ActivityIndicator
+                      size="small"
+                      color={colors.text}
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={
+                      styles.noComments
+                    }
+                  >
+                    <ThemedText>
+                      No comments yet.
+                    </ThemedText>
 
+                    <ThemedText
+                      style={
+                        styles.noCommentsSubtext
+                      }
+                    >
+                      Be the first to comment.
+                    </ThemedText>
+                  </View>
+                )
+              }
+            />
+
+            {/* Comment input and send button. */}
             <View
               style={[
                 styles.commentInputContainer,
@@ -1710,62 +1693,62 @@ export default function Profile() {
                 },
               ]}
             >
-            <BottomSheetTextInput
-              value={commentText}
-              onChangeText={
-                setCommentText
-              }
-              placeholder="Add a comment..."
-              placeholderTextColor={
-                colors.text + "80"
-              }
-              multiline
-              style={[
-                styles.commentInput,
-                {
-                  color: colors.text,
-                  borderColor:
-                    colors.border,
-                  backgroundColor:
-                    colors.background,
-                },
-              ]}
-              editable={!commentSending}
-            />
+              <BottomSheetTextInput
+                value={commentText}
+                onChangeText={
+                  setCommentText
+                }
+                placeholder="Add a comment..."
+                placeholderTextColor={
+                  colors.text + "80"
+                }
+                multiline
+                style={[
+                  styles.commentInput,
+                  {
+                    color: colors.text,
+                    borderColor:
+                      colors.border,
+                    backgroundColor:
+                      colors.background,
+                  },
+                ]}
+                editable={!commentSending}
+              />
 
-            <Pressable
-              onPress={
-                handleSendComment
-              }
-              disabled={
-                commentSending ||
-                !commentText.trim()
-              }
-              style={[
-                styles.commentSendButton,
-                {
-                  backgroundColor: colors.primary,
-                  opacity:
-                    commentSending ||
-                    !commentText.trim()
-                      ? 0.4
-                      : 1,
-                },
-              ]}
-            >
-              {commentSending ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.text}
-                />
-              ) : (
-                <MaterialIcons
-                  name="send"
-                  size={23}
-                  color="#fff"
-                />
-              )}
-            </Pressable>
+              <Pressable
+                onPress={
+                  handleSendComment
+                }
+                disabled={
+                  commentSending ||
+                  !commentText.trim()
+                }
+                style={[
+                  styles.commentSendButton,
+                  {
+                    backgroundColor: colors.primary,
+                    opacity:
+                      commentSending ||
+                      !commentText.trim()
+                        ? 0.4
+                        : 1,
+                  },
+                ]}
+              >
+                {commentSending ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.text}
+                  />
+                ) : (
+                  <MaterialIcons
+                    name="send"
+                    size={23}
+                    color="#fff"
+                  />
+                )}
+              </Pressable>
             </View>
           </View>
         </BottomSheet>
@@ -1934,6 +1917,7 @@ export default function Profile() {
             </Pressable>
           </View>
 
+          {/* Opens the enlarged profile picture. */}
           <Pressable
             onPress={() =>
               setShowPicture(true)
@@ -2261,6 +2245,10 @@ export default function Profile() {
     </SafeAreaView>
   );
 }
+
+/*
+ * Profile screen styles
+ */
 
 const styles = StyleSheet.create({
   fullScreen: {
