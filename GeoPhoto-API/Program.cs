@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MapAppApi.Data;
 using MapAppApi.Models;
@@ -840,7 +841,7 @@ app.MapPut("/me", async (
 
 
 app.MapDelete("/me", async (
-    DeleteAccountRequest request,
+    [FromBody] DeleteAccountRequest request,
     ClaimsPrincipal currentUser,
     AppDbContext db,
     UserManager<ApplicationUser> userManager,
