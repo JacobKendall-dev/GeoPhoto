@@ -37,9 +37,9 @@ The mobile application provides a map-based interface for browsing shared locati
   <img src="docs/images/mobile%20main%20map.png" alt="GeoPhoto Mobile Map" width="300">
 </p>
 
-### Photo Upload
+### Mobile Explore
 
-Users can capture or select a photo, provide a description, and associate it with their current geographic coordinates.
+Users can explore most all locations, closest, and most liked posts in a list format.
 
 <p align="center">
   <img src="docs/images/mobile%20upload.png" alt="GeoPhoto Mobile Photo Upload" width="300">
