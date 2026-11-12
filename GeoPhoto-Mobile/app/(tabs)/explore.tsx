@@ -4,7 +4,7 @@ import {ActivityIndicator, Alert, Dimensions, FlatList, Image, Modal, Pressable,
 } from "react-native";
 
 import { useTheme } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as Location from "expo-location";
 
 import BottomSheet, {BottomSheetFlatList, BottomSheetTextInput} from "@gorhom/bottom-sheet";
@@ -95,6 +95,8 @@ export default function Explore() {
   const [loading, setLoading] = useState(true);
 
   const [distanceLoading, setDistanceLoading] = useState(false);
+  // Tracks whether the initial feed request has completed.
+  const hasLoadedLocations = useRef(false);
 
   // Currently selected location and its comments.
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -141,7 +143,10 @@ export default function Explore() {
   // Fetch the public location feed, including the current user's interaction state.
   const fetchLocations = useCallback(async () => {
     try {
-      setLoading(true);
+      // Only show the full-screen loader on the initial load.
+      if (!hasLoadedLocations.current) {
+        setLoading(true);
+      }
 
       const headers: Record<string, string> = {};
 
@@ -157,28 +162,26 @@ export default function Explore() {
       );
 
       if (!response.ok) {
-        throw new Error(
-          "Failed to load locations."
-        );
+        throw new Error("Failed to load locations.");
       }
 
       const data = await response.json();
 
       setLocations(data);
     } catch (error) {
-      console.error(
-        "Error loading locations:",
-        error
-      );
+      console.error("Error loading locations:", error);
     } finally {
+      hasLoadedLocations.current = true;
       setLoading(false);
     }
   }, [token]);
 
-  // Load locations when the screen first opens or the token changes.
-  React.useEffect(() => {
-    fetchLocations();
-  }, [fetchLocations]);
+  // Refresh locations whenever Explore becomes the active screen.
+  useFocusEffect(
+    useCallback(() => {
+      fetchLocations();
+    }, [fetchLocations])
+  );
 
   /*
    * Calculate distance between two

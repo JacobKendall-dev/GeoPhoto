@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "GeoPhoto",
-    "slug": "geophoto",
+    "slug": "MapAppMobileClean",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.tidusffx.geophoto",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
